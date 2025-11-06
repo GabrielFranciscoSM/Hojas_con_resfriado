@@ -76,6 +76,8 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
 *   Object detection
     *   [ ] Estudiar modelos de detección de objetoas
     *   [ ] Estudiar YOLO (diferentes versiones y/o implementación from scratch)
+*   Finetuning
+    *   [ ] Estudiar necesidad y factibilidad de hacer finetining para los modelos (los 3)
 *   Integración
     *   [ ] Diseñar el pipeline con los diferentes modelos
     *   [ ] Testear y afinar los modelos
