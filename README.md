@@ -65,7 +65,13 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
 
 ---
 
-## 6. TODOS
+## 6. Interesting Links
+
+* **[YOLO from scratch](https://github.com/williamcfrancis/YOLOv3-Object-Detection-from-Scratch)**
+
+---
+
+## 7. TODOS
 
 *   Datasets
     *   [ ] Elegir dataset adecuado, lo suficientemente grande y con suficientes ejemplos de plantas y enfermedades "similares"
