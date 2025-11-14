@@ -8,7 +8,7 @@
 
 *   Gabriel Francisco Sánchez Muñoz
 *   Germán Rodríguez Vidal
-*   Miguel Ángel [Apellido]
+*   Miguel Ángel Moreno Castro
 *   Pablo García Bas
 
 ---
