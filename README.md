@@ -65,19 +65,20 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
 
 ---
 
-## 6. Planificación (Cronograma a 2 meses)
+## 6. TODOS
 
-*   **Semanas 1-2:**
-    *   [ ] Búsqueda y análisis exhaustivo de datasets.
-    *   [ ] Definición final del alcance del proyecto (ver "Consideraciones Clave").
-    *   [ ] Preprocesamiento y limpieza de los datos.
-*   **Semanas 3-4:**
-    *   [ ] Desarrollo y entrenamiento del **Modelo 1 (Clasificación de Especie)**.
-    *   [ ] Inicio del etiquetado de datos para YOLO (si es necesario).
-*   **Semanas 5-6:**
-    *   [ ] Desarrollo y entrenamiento del **Modelo 2 (Detección de Lesiones con YOLO)**.
-    *   [ ] Desarrollo y entrenamiento del **Modelo 3 (Clasificación de Patógeno)**.
-*   **Semanas 7-8:**
-    *   [ ] Integración de los tres modelos en un pipeline único.
-    *   [ ] Evaluación final del sistema completo.
-    *   [ ] Redacción de la memoria y preparación de la presentación final.
+*   Datasets
+    *   [ ] Elegir dataset adecuado, lo suficientemente grande y con suficientes ejemplos de plantas y enfermedades "similares"
+    *   [ ] Estudiar si hay que preprocesar / aumentar el dataset
+    *   [ ] Documentar Dataset
+*   Modelo Clasificación
+    *   [ ] Estudiar / Elegir Modelo de clasificación inicial del pipeline
+*   Object detection
+    *   [ ] Estudiar modelos de detección de objetoas
+    *   [ ] Estudiar YOLO (diferentes versiones y/o implementación from scratch)
+*   Finetuning
+    *   [ ] Estudiar necesidad y factibilidad de hacer finetining para los modelos (los 3)
+*   Integración
+    *   [ ] Diseñar el pipeline con los diferentes modelos
+    *   [ ] Testear y afinar los modelos
+*   Documentación
