@@ -86,128 +86,17 @@ Fourth Author\\
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
-\section{Introduction}
-\label{sec:intro}
+\input{sections/introduction}
 
-Here, the problem to be solved is described (what do we want to do?), the motivation (why is it relevant to do it?), and the goals (what specific objectives are we going to address in order to solve the problem?).
+\input{sections/background}
 
-We use the \LaTeX\  format of the \href{https://en.wikipedia.org/wiki/Conference_on_Computer_Vision_and_Pattern_Recognition}{CVPR} conference. This document can be written either in English or Spanish. 
+\input{sections/related_works}
 
-What follows is a tentative approximation of the sections the document should have. If students consider that they need others, as well as subdividing the sections into different subsections, they can do it without problem.
+\input{sections/methods}
 
-Students can take inspiration from the \href{http://cs231n.stanford.edu/index.html}{cs231n} final projects website: \url{http://cs231n.stanford.edu/project.html}, where different projects are presented and developed. 
+\input{sections/experiments}
 
-This whole final report can have from 6 to 8 pages (no more and no less). 
-
-\section{Background}
-
-This section presents the fundamental concepts necessary to understand the work.
-
-
-\section{Related Works}
-
-It presents what has been done in the field previously, and what the best methods are currently. It is very important, in general, not only in this section, to adequately document the relevant literature. To do this, you must use the $.bib$ file, in the way I show here: \cite{mesejo2016computer, lathuiliere2019comprehensive, vargas2023deep}
-
-\section{Methods}
-
-\subsection{Classification Models}
-
-\begin{table}[htbp]
-    \centering
-    \small % Slightly smaller text to fit content
-    \renewcommand{\arraystretch}{1.5} % Increases row height for readability
-    \begin{tabularx}{\textwidth}{@{} >{\bfseries}l X X X @{}}
-        \toprule
-        Feature & \textbf{ResNet} & \textbf{EfficientNet (V1)} & \textbf{EfficientNetV2} \\
-        \midrule
-        
-        First Published & 
-        2015 (He et al.) & 
-        2019 (Tan \& Le, Google) & 
-        2021 (Tan \& Le, Google) \\
-
-        Core Idea & 
-        Residual (skip) connections to enable training of very deep networks & 
-        Compound scaling: jointly scale depth, width, and resolution using a fixed coefficient & 
-        Improved compound scaling + faster training: smarter architecture + adaptive regularization \\
-
-        Basic Block & 
-        $\bullet$ BasicBlock (2$\times$ 3$\times$3 convs) for ResNet18/34 \newline $\bullet$ Bottleneck (1$\times$1 $\to$ 3$\times$3 $\to$ 1$\times$1 convs) for ResNet50+ & 
-        MBConv (Mobile Inverted Bottleneck): \newline 1$\times$1 exp $\to$ 3$\times$3 depthwise $\to$ SE $\to$ 1$\times$1 proj & 
-        Fused-MBConv (early stages): regular 3$\times$3 conv instead of 1$\times$1+depthwise \newline MBConv (later stages) \newline SE only in later blocks \\
-
-        Skip Connections & 
-        \cmark\ Yes (additive residual) & 
-        \cmark\ Yes (MBConv uses residual when strides=1) & 
-        \cmark\ Yes \\
-
-        Attention & 
-        \xmark\ No & 
-        \cmark\ Squeeze-and-Excitation (SE) in every block & 
-        \cmark\ SE, but only in later stages (to reduce overhead) \\
-
-        Scaling Method & 
-        Manual depth increase \newline (18 $\to$ 34 $\to$ 50 $\to$ 101 $\to$ 152) & 
-        Uniform compound scaling: \newline Depth $\times \alpha$, Width $\times \beta$, Res $\times \gamma$ & 
-        Non-uniform compound scaling + progressive learning (small $\to$ large images during training) \\
-
-        Input Resolution & 
-        Fixed (usually 224$\times$224), but flexible & 
-        Scales with model size: \newline B0: 224 $\to$ B7: 600 & 
-        Smaller than V1 for same accuracy: \newline S: 384, M: 480, L: 480–512 \\
-
-        Typical Sizes & 
-        $\bullet$ ResNet18 (11M params) \newline $\bullet$ ResNet34 (21M) \newline $\bullet$ ResNet50 (25M) \newline $\bullet$ ResNet101 (44M) & 
-        $\bullet$ B0 (5.3M) \newline $\bullet$ B3 (12M) \newline $\bullet$ B5 (30M) \newline $\bullet$ B7 (66M) & 
-        $\bullet$ S (21M) \newline $\bullet$ M (54M) \newline $\bullet$ L (120M) \\
-
-        Accuracy (ImageNet) & 
-        $\bullet$ ResNet50: $\sim$76\% \newline $\bullet$ ResNet101: $\sim$78\% & 
-        $\bullet$ B0: $\sim$77\% \newline $\bullet$ B3: $\sim$82\% \newline $\bullet$ B7: $\sim$84.4\% & 
-        $\bullet$ S: $\sim$83.9\% \newline $\bullet$ M: $\sim$85.2\% \newline $\bullet$ L: $\sim$85.7\% \\
-
-        Training Speed & 
-        Moderate & 
-        Slow (due to high-res inputs \& depth) & 
-        Much faster (up to 11$\times$ vs V1 at similar accuracy) \\
-
-        Inference Efficiency & 
-        Good for small models (18/34); heavier for 101+ & 
-        Very parameter-efficient, but high-res hurts latency & 
-        Better FLOPs/accuracy trade-off; optimized for TPU/GPU \\
-
-        Best For & 
-        $\bullet$ Baseline models \newline $\bullet$ Transfer learning with limited data \newline $\bullet$ Fast prototyping & 
-        $\bullet$ Resource-constrained deployment \newline $\bullet$ When you need high accuracy with fewer params & 
-        $\bullet$ Production systems needing speed + accuracy \newline $\bullet$ Training from scratch or fine-tuning \\
-
-        fastai / PyTorch & 
-        \cmark\ Native in torchvision \& fastai & 
-        \cmark\ Via \texttt{timm} (e.g., \texttt{efficientnet\_b0}) & 
-        \cmark\ Via \texttt{timm} (e.g., \texttt{efficientnetv2\_s}) \\
-
-        Key Weakness & 
-        Suboptimal parameter efficiency; outdated vs modern models & 
-        Slow training; SE adds compute overhead; high-res = memory heavy & 
-        Slightly less mature ecosystem; not in torchvision \\
-
-        \bottomrule
-    \end{tabularx}
-    \caption{Comparison of ResNet, EfficientNetV1, and EfficientNetV2 Architectures}
-    \label{tab:model_comparison}
-\end{table}
-
-Detailed description of the methods used and/or proposed, and clear justification of why these methods are used and not others.
-
-\section{Experiments}
-
-The data used, the experimental validation protocol, the metrics used, the experiments carried out, the results obtained, and their discussion are presented here.
-
-\subsection{Dataset}
-
-\section{Conclusions}
-
-Section that presents, briefly and as a summary, the main conclusions of the work carried out. It also usually includes future possible works. That is, what are the most promising lines to continue with this work, as well as possible proposals for improvement. IMPORTANT: these are the scientific conclusions reached in the project; not your personal conclusions about the work you have done!
+\input{sections/conclusions}
 
 %%%%%%%%% REFERENCES
 {\small

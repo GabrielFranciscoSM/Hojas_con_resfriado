@@ -1,0 +1,222 @@
+\section{Methods}
+
+\subsection{Modelos de Clasificación}
+
+En nuestro problema tenemos dos etapas de clasificación de imágenes. 
+Primero, una clasificación de hojas en tipos de plantas, y luego una 
+clasificación de las enfermedades presentes en las hojas de cada tipo de planta.
+
+Estos son dos problemas bastante diferentes en cuanto a la complejidad de la tarea,
+principalmente porque en la primera etapa las diferencias entre clases son más notorias
+(muy diferentes tipos de plantas), mientras que en la segunda etapa las diferencias
+son más sutiles (diferentes enfermedades que pueden afectar a la misma planta,
+y que a veces pueden parecerse mucho entre sí). Además, nos enfretamos al problema 
+de la diferencia de tamaños de las imágenes de las hojas y la de sus enfermedades.
+
+Con esto en mente, tiene sentido estudiar una amplia gama de modelos de clasificación,
+y elegir los más adecuados para cada etapa del problema.
+
+He dividido el estudio inicial de los modelos en dos partes: arquitecturas clásicas
+y arquitecturas modernas basadas en Transformers. En las tablas \ref{tab:model_comparison}
+y \ref{tab:modern_model_comparison} se presentan las comparaciones detalladas de
+las diferentes arquitecturas estudiadas.
+
+\begin{table*}[htbp]
+    \centering
+    \scriptsize % Texto más pequeño para ajustar el contenido
+    \renewcommand{\arraystretch}{1.3} % Altura de filas ajustada
+    \begin{tabularx}{\textwidth}{@{} >{\bfseries}p{2.2cm} X X X X @{}}
+        \toprule
+        Característica & \textbf{GoogLeNet (Inception)} & \textbf{ResNet} & \textbf{EfficientNet (V1)} & \textbf{EfficientNetV2} \\
+        \midrule
+        
+        Primera Publicación & 
+        2014 (Szegedy et al., Google) &
+        2015 (He et al.) & 
+        2019 (Tan \& Le, Google) & 
+        2021 (Tan \& Le, Google) \\
+
+        Idea Principal & 
+        Módulos Inception con convoluciones paralelas de múltiples escalas &
+        Conexiones residuales (skip) para permitir el entrenamiento de redes muy profundas & 
+        Escalado compuesto: escalar conjuntamente profundidad, anchura y resolución usando un coeficiente fijo & 
+        Escalado compuesto mejorado + entrenamiento más rápido: arquitectura más inteligente + regularización adaptativa \\
+
+        Bloque Básico & 
+        Módulo Inception: convoluciones paralelas 1$\times$1, 3$\times$3, 5$\times$5 + max pooling, concatenadas &
+        $\bullet$ BasicBlock (2$\times$ 3$\times$3 convs) para ResNet18/34 \newline $\bullet$ Bottleneck (1$\times$1 $\to$ 3$\times$3 $\to$ 1$\times$1 convs) para ResNet50+ & 
+        MBConv (Mobile Inverted Bottleneck): \newline 1$\times$1 exp $\to$ 3$\times$3 depthwise $\to$ SE $\to$ 1$\times$1 proj & 
+        Fused-MBConv (etapas iniciales): conv 3$\times$3 regular en lugar de 1$\times$1+depthwise \newline MBConv (etapas posteriores) \newline SE solo en bloques posteriores \\
+
+        Conexiones Skip & 
+        \xmark\ No (pero versiones posteriores como Inception-ResNet sí) &
+        \cmark\ Sí (residual aditivo) & 
+        \cmark\ Sí (MBConv usa residual cuando strides=1) & 
+        \cmark\ Sí \\
+
+        Atención & 
+        \xmark\ No &
+        \xmark\ No & 
+        \cmark\ Squeeze-and-Excitation (SE) en cada bloque & 
+        \cmark\ SE, pero solo en etapas posteriores (para reducir overhead) \\
+
+        Método de Escalado & 
+        Manual: aumento de módulos Inception apilados &
+        Aumento manual de profundidad \newline (18 $\to$ 34 $\to$ 50 $\to$ 101 $\to$ 152) & 
+        Escalado compuesto uniforme: \newline Profundidad $\times \alpha$, Anchura $\times \beta$, Res $\times \gamma$ & 
+        Escalado compuesto no uniforme + aprendizaje progresivo (imágenes pequeñas $\to$ grandes durante entrenamiento) \\
+
+        Resolución de Entrada & 
+        Fija (224$\times$224) &
+        Fija (usualmente 224$\times$224), pero flexible & 
+        Escala con el tamaño del modelo: \newline B0: 224 $\to$ B7: 600 & 
+        Menor que V1 para la misma precisión: \newline S: 384, M: 480, L: 480–512 \\
+
+        Tamaños Típicos & 
+        $\bullet$ GoogLeNet (6.8M params) \newline $\bullet$ Inception-v3 (23.8M) \newline $\bullet$ Inception-v4 (42.7M) &
+        $\bullet$ ResNet18 (11M params) \newline $\bullet$ ResNet34 (21M) \newline $\bullet$ ResNet50 (25M) \newline $\bullet$ ResNet101 (44M) & 
+        $\bullet$ B0 (5.3M) \newline $\bullet$ B3 (12M) \newline $\bullet$ B5 (30M) \newline $\bullet$ B7 (66M) & 
+        $\bullet$ S (21M) \newline $\bullet$ M (54M) \newline $\bullet$ L (120M) \\
+
+        Precisión (ImageNet) & 
+        $\bullet$ GoogLeNet: $\sim$69.8\% \newline $\bullet$ Inception-v3: $\sim$78.8\% &
+        $\bullet$ ResNet50: $\sim$76\% \newline $\bullet$ ResNet101: $\sim$78\% & 
+        $\bullet$ B0: $\sim$77\% \newline $\bullet$ B3: $\sim$82\% \newline $\bullet$ B7: $\sim$84.4\% & 
+        $\bullet$ S: $\sim$83.9\% \newline $\bullet$ M: $\sim$85.2\% \newline $\bullet$ L: $\sim$85.7\% \\
+
+        Velocidad de Entrenamiento & 
+        Moderada &
+        Moderada & 
+        Lenta (debido a entradas de alta resolución y profundidad) & 
+        Mucho más rápida (hasta 11$\times$ vs V1 con precisión similar) \\
+
+        Eficiencia de Inferencia & 
+        Buena; diseño eficiente en parámetros para su época &
+        Buena para modelos pequeños (18/34); más pesada para 101+ & 
+        Muy eficiente en parámetros, pero alta resolución afecta latencia & 
+        Mejor relación FLOPs/precisión; optimizado para TPU/GPU \\
+
+        Mejor Para & 
+        $\bullet$ Comprensión histórica de CNNs \newline $\bullet$ Extracción de características multi-escala &
+        $\bullet$ Modelos base \newline $\bullet$ Transfer learning con datos limitados \newline $\bullet$ Prototipado rápido & 
+        $\bullet$ Despliegue con recursos limitados \newline $\bullet$ Cuando se necesita alta precisión con menos parámetros & 
+        $\bullet$ Sistemas de producción que necesitan velocidad + precisión \newline $\bullet$ Entrenamiento desde cero o fine-tuning \\
+
+        fastai / PyTorch & 
+        \cmark\ Nativo en torchvision (\texttt{googlenet}, \texttt{inception\_v3}) &
+        \cmark\ Nativo en torchvision y fastai & 
+        \cmark\ Vía \texttt{timm} (ej., \texttt{efficientnet\_b0}) & 
+        \cmark\ Vía \texttt{timm} (ej., \texttt{efficientnetv2\_s}) \\
+
+        Debilidad Principal & 
+        Arquitectura obsoleta; menor precisión que modelos modernos &
+        Eficiencia de parámetros subóptima; obsoleto vs modelos modernos & 
+        Entrenamiento lento; SE añade overhead computacional; alta resolución = mucha memoria & 
+        Ecosistema ligeramente menos maduro; no está en torchvision \\
+
+        \bottomrule
+    \end{tabularx}
+    \caption{Comparación de las Arquitecturas GoogLeNet (Inception), ResNet, EfficientNetV1 y EfficientNetV2}
+    \label{tab:model_comparison}
+\end{table*}
+
+\begin{table*}[htbp]
+    \centering
+    \scriptsize
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabularx}{\textwidth}{@{} >{\bfseries}p{2.2cm} X X X @{}}
+        \toprule
+        Característica & \textbf{ConvNeXt} & \textbf{Swin Transformer} & \textbf{MaxViT} \\
+        \midrule
+        
+        Primera Publicación & 
+        2022 (Liu et al., Meta/FAIR) & 
+        2021 (Liu et al., Microsoft) & 
+        2022 (Tu et al., Google) \\
+
+        Idea Principal & 
+        Modernización de ResNet con técnicas inspiradas en Transformers, demostrando que CNNs puras pueden competir & 
+        Transformer jerárquico con atención en ventanas locales y desplazamiento para conexión entre ventanas & 
+        Combinación de convoluciones + atención local (block) + atención global diluida (grid) en cada bloque \\
+
+        Tipo de Arquitectura & 
+        CNN pura (sin atención) & 
+        Transformer puro (sin convoluciones en backbone) & 
+        Híbrido CNN + Transformer \\
+
+        Bloque Básico & 
+        Inverted bottleneck con depthwise conv 7$\times$7, LayerNorm, GELU & 
+        Swin Transformer Block: \newline Window-MSA $\to$ MLP $\to$ Shifted-Window-MSA $\to$ MLP & 
+        MBConv $\to$ Block Attention $\to$ Grid Attention \\
+
+        Mecanismo de Atención & 
+        \xmark\ No usa atención (solo convoluciones) & 
+        \cmark\ Multi-head Self-Attention en ventanas 7$\times$7, con shift en capas alternas & 
+        \cmark\ Block Attention (local en ventanas) + Grid Attention (global diluida) \\
+
+        Receptive Field Global & 
+        Solo en capas profundas (por apilamiento) & 
+        Gradual mediante shifted windows & 
+        \cmark\ Desde las primeras capas (via Grid Attention) \\
+
+        Complejidad Computacional & 
+        O(n) lineal respecto a resolución & 
+        O(n) lineal (atención local en ventanas fijas) & 
+        O(n) lineal (block + grid attention) \\
+
+        Representación Jerárquica & 
+        \cmark\ Sí (4 etapas con downsampling) & 
+        \cmark\ Sí (patch merging entre etapas) & 
+        \cmark\ Sí (estructura multi-escala) \\
+
+        Resolución de Entrada & 
+        224$\times$224 (escalable) & 
+        224$\times$224 (escalable a alta resolución) & 
+        224$\times$224 a 512$\times$512 \\
+
+        Tamaños Típicos & 
+        $\bullet$ ConvNeXt-T (29M) \newline $\bullet$ ConvNeXt-S (50M) \newline $\bullet$ ConvNeXt-B (89M) \newline $\bullet$ ConvNeXt-L (198M) & 
+        $\bullet$ Swin-T (29M) \newline $\bullet$ Swin-S (50M) \newline $\bullet$ Swin-B (88M) \newline $\bullet$ Swin-L (197M) & 
+        $\bullet$ MaxViT-T (31M) \newline $\bullet$ MaxViT-S (69M) \newline $\bullet$ MaxViT-B (120M) \newline $\bullet$ MaxViT-L (212M) \\
+
+        Precisión (ImageNet-1K) & 
+        $\bullet$ T: $\sim$82.1\% \newline $\bullet$ B: $\sim$83.8\% \newline $\bullet$ L: $\sim$84.3\% \newline $\bullet$ XL (21K): $\sim$87.8\% & 
+        $\bullet$ T: $\sim$81.3\% \newline $\bullet$ B: $\sim$83.5\% \newline $\bullet$ L: $\sim$86.4\% \newline $\bullet$ L (21K): $\sim$87.3\% & 
+        $\bullet$ T: $\sim$83.6\% \newline $\bullet$ B: $\sim$85.0\% \newline $\bullet$ L: $\sim$86.4\% \newline $\bullet$ L (21K): $\sim$89.5\% \\
+
+        Velocidad de Entrenamiento & 
+        Rápido (operaciones de convolución optimizadas) & 
+        Moderado (overhead de atención) & 
+        Moderado-lento (múltiples tipos de atención) \\
+
+        Eficiencia de Inferencia & 
+        Excelente (convoluciones muy optimizadas en GPU) & 
+        Buena (atención local eficiente) & 
+        Buena (pero más complejo que los otros) \\
+
+        Backbone Universal & 
+        \cmark\ Sí (detección, segmentación) & 
+        \cmark\ Sí (muy popular para downstream tasks) & 
+        \cmark\ Sí (clasificación, detección, segmentación) \\
+
+        Mejor Para & 
+        $\bullet$ Cuando se prefiere simplicidad de CNNs \newline $\bullet$ Inferencia eficiente \newline $\bullet$ Transfer learning & 
+        $\bullet$ Backbone para tareas densas \newline $\bullet$ Estado del arte en detección/segmentación \newline $\bullet$ Preentrenamiento a gran escala & 
+        $\bullet$ Máxima precisión \newline $\bullet$ Cuando se necesita contexto global desde el inicio \newline $\bullet$ Tareas que requieren relaciones de largo alcance \\
+
+        Disponibilidad & 
+        \cmark\ torchvision + \texttt{timm} & 
+        \cmark\ torchvision + \texttt{timm} & 
+        \cmark\ \texttt{timm} (\texttt{maxvit\_*}) \\
+
+        Debilidad Principal & 
+        Menor capacidad de modelar dependencias globales que Transformers & 
+        Conexión entre ventanas limitada por shifted windows & 
+        Mayor complejidad de implementación; menos maduro que Swin/ConvNeXt \\
+
+        \bottomrule
+    \end{tabularx}
+    \caption{Comparación de Arquitecturas Modernas: ConvNeXt, Swin Transformer y MaxViT}
+    \label{tab:modern_model_comparison}
+\end{table*}
+
