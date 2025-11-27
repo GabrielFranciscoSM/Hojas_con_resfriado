@@ -220,3 +220,64 @@ las diferentes arquitecturas estudiadas.
     \label{tab:modern_model_comparison}
 \end{table*}
 
+\subsubsection{Modelos clásicos}
+
+En la tabla \ref{tab:model_comparison} se presentan las comparaciones detalladas de las 
+diferentes arquitecturas clásicas estudiadas: GoogLeNet (Inception), ResNet, EfficientNetV1 y 
+EfficientNetV2. Aquí se describen las características principales de cada modelo, 
+sus ventajas y desventajas, y por qué se eligieron para este proyecto.
+
+A lo largo del tiempo se han desarrollado técnicas interesantes que han llevado al avance de estos
+modelos. A continuación los describiré brevemente:
+
+\begin{enumerate}
+    \item \textbf{GoogLeNet (Inception)}: Introdujo los módulos Inception que permiten capturar 
+    características a múltiples escalas mediante convoluciones paralelas de diferentes tamaños. 
+    Esto mejora la eficiencia computacional y la capacidad de extracción de características.
+    \item \textbf{ResNEt (Capas Residuales)}: Introdujo las conexiones residuales (skip connections) 
+    que facilitan el entrenamiento de redes muy profundas al mitigar el problema del desvanecimiento 
+    del gradiente. Esto permitió construir redes con cientos de capas.
+    \item \textbf{EfficientNetV1 (Escalado Compuesto)}: Propuso un método sistemático para escalar 
+    redes neuronales ajustando conjuntamente la profundidad, anchura y resolución de entrada mediante 
+    un coeficiente fijo. Esto llevó a modelos más eficientes en términos de precisión y tamaño.
+    \item \textbf{EfficientNetv2 (Progesive Learning)}: Mejoró la velocidad de entrenamiento mediante
+    una arquitectura más inteligente y una regularización adaptativa.  
+    \item \textbf{MBConv (Mobile Inverted Bottleneck)}: Utilizado en EfficientNet, este bloque combina 
+    convoluciones depthwise separables con una expansión y proyección de canales, lo que reduce 
+    significativamente el número de parámetros y operaciones computacionales. Se basa en que las capas 
+    más finas (bottlenecks) ya tienen la información necesaria, y las convoluciones depthwise son más eficientes.
+    \item \textbf{Fused-MBConv}: Introducido en EfficientNetV2, este bloque combina convoluciones regulares
+    con depthwise en las primeras etapas de la red para mejorar la velocidad de entrenamiento sin sacrificar 
+    la precisión.
+    \item \textbf{Squeeze-and-Excitation (SE)}: Introdujo bloques de atención que recalibran dinámicamente 
+    las características de los canales, mejorando la capacidad del modelo para enfocarse en características 
+    relevantes.
+\end{enumerate}
+
+Estas son algunas de las técnicas clave que han impulsado el desarrollo de modelos clásicos de clasificación
+de imágenes. Cada una de ellas ha contribuido a mejorar la precisión, eficiencia y capacidad de generalización
+de las redes neuronales convolucionales.
+
+\subsubsection{Modelos modernos}
+
+EL desarrollo de los Transformers ha revolucionado el campo del aprendizaje profundo, y su aplicación
+a la visión por computadora ha llevado a la creación de modelos modernos que superan a las arquitecturas
+clásicas en muchas tareas. En la tabla \ref{tab:modern_model_comparison} se presentan las comparaciones detalladas de las 
+diferentes arquitecturas modernas estudiadas: ConvNeXt, Swin Transformer y MaxViT. Aquí se describen las características principales de cada modelo, 
+sus ventajas y desventajas, y por qué se eligieron para este proyecto.
+
+A continuación se describen brevemente las técnicas clave de estos modelos modernos:
+
+\begin{enumerate}
+    \item \textbf{Convolución Depthwise separable}
+    \item \textbf{LayerNorm}:
+    \item \textbf{GELU}
+    \item \textbf{Swin (patch + transformers)}: Introduce un enfoque jerárquico con atención en ventanas locales y desplazamiento 
+    para conectar ventanas, lo que permite manejar imágenes de alta resolución de manera eficiente.
+    \item \textbf{MaxViT}: Combina convoluciones con atención local (block) y atención global diluida (grid) en cada bloque, 
+    permitiendo capturar tanto características locales como relaciones de largo alcance desde las primeras capas.
+    \item \textbf{Atención en Ventanas Desplazadas}: Utilizada en Swin Transformer, esta técnica permite que la atención 
+    se aplique en ventanas locales, pero con un desplazamiento entre capas para conectar diferentes regiones de la imagen.
+    \item \textbf{Atención Global Diluida}: Empleada en MaxViT, esta técnica permite capturar información global sin el 
+    alto costo computacional de la atención completa, utilizando una estrategia de muestreo diluido.
+\end{enumerate}
