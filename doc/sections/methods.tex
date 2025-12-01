@@ -269,15 +269,61 @@ sus ventajas y desventajas, y por qué se eligieron para este proyecto.
 A continuación se describen brevemente las técnicas clave de estos modelos modernos:
 
 \begin{enumerate}
-    \item \textbf{Convolución Depthwise separable}
-    \item \textbf{LayerNorm}:
-    \item \textbf{GELU}
-    \item \textbf{Swin (patch + transformers)}: Introduce un enfoque jerárquico con atención en ventanas locales y desplazamiento 
-    para conectar ventanas, lo que permite manejar imágenes de alta resolución de manera eficiente.
-    \item \textbf{MaxViT}: Combina convoluciones con atención local (block) y atención global diluida (grid) en cada bloque, 
-    permitiendo capturar tanto características locales como relaciones de largo alcance desde las primeras capas.
-    \item \textbf{Atención en Ventanas Desplazadas}: Utilizada en Swin Transformer, esta técnica permite que la atención 
-    se aplique en ventanas locales, pero con un desplazamiento entre capas para conectar diferentes regiones de la imagen.
-    \item \textbf{Atención Global Diluida}: Empleada en MaxViT, esta técnica permite capturar información global sin el 
-    alto costo computacional de la atención completa, utilizando una estrategia de muestreo diluido.
+\item \textbf{Convolución Depthwise Separable}: Fundamental en arquitecturas como ConvNeXt y EfficientNet (MBConv). Descompone una convolución estándar en dos operaciones más ligeras: una \textit{depthwise} (que opera espacialmente canal por canal de forma independiente) y una \textit{pointwise} (convolución 1$\times$1 que mezcla la información de los canales). Esto reduce drásticamente la cantidad de parámetros y FLOPs, permitiendo aumentar el tamaño de la red sin disparar el costo computacional.
+    
+\item \textbf{LayerNorm (Normalización de Capa)}: A diferencia de BatchNorm, que normaliza a través del lote (batch), LayerNorm normaliza las estadísticas a través de la dimensión de los canales para cada muestra individualmente. Originalmente popular en NLP, se ha convertido en el estándar para Vision Transformers y ConvNeXt debido a su estabilidad durante el entrenamiento y su independencia del tamaño del batch, lo cual es crucial cuando se trabaja con imágenes de alta resolución donde los batches son pequeños.
+
+\item \textbf{GELU (Gaussian Error Linear Unit)}: Es una función de activación más suave que la tradicional ReLU. Mientras que ReLU trunca abruptamente a cero los valores negativos, GELU los pondera por su magnitud basándose en una distribución normal probabilística. Esta curvatura suave facilita la optimización y el flujo de gradientes en redes muy profundas, siendo la activación por defecto en BERT, GPT, ViT y ConvNeXt.
+
+\item \textbf{Atención por Ventanas Desplazadas (Shifted Window Attention)}: Es la innovación clave del Swin Transformer. Calcular la auto-atención global es costoso ($O(N^2)$). Swin limita la atención a ventanas locales fijas (costo lineal $O(N)$), pero para que las ventanas se comuniquen entre sí, desplaza (shiftea) la partición de las ventanas en capas alternas. Esto crea conexiones cruzadas que permiten que la información se propague globalmente a través de la imagen con una eficiencia computacional muy alta.
+
+\item \textbf{Atención Multi-Eje (Multi-Axis Attention)}: Utilizada en MaxViT para resolver la falta de contexto global eficiente. Descompone la atención dispersa en dos pasos: \textit{Block Attention} (local, que captura texturas y detalles cercanos) y \textit{Grid Attention} (global y diluida, que atiende píxeles lejanos en una rejilla regular). Juntos, permiten un campo receptivo global desde las primeras capas con una complejidad lineal, superando las limitaciones de las ventanas puramente locales.
+
+\item \textbf{Sesgo de Posición Relativa (Relative Position Bias)}: Los Transformers, al ser invariantes a la permutación, necesitan información posicional. En lugar de sumar embeddings de posición absolutos a la entrada (como en el ViT original), modelos como Swin y MaxViT inyectan un sesgo aprendible directamente en la matriz de atención basado en la distancia relativa entre píxeles. Esto mejora la generalización a diferentes resoluciones de imagen, permitiendo entrenar en un tamaño y testear en otro diferente.
+
+\item \textbf{Stem "Patchify" y Downsampling Separado}: Las CNN clásicas reducían la dimensión agresivamente al inicio. Los modelos modernos imitan a los Transformers dividiendo la imagen en "parches" no superpuestos (usando una convolución, por ejemplo, de 4$\times$4 con stride 4). Además, en lugar de usar \textit{max pooling} dentro de los bloques, utilizan capas de \textit{downsampling} dedicadas y separadas entre etapas (generalmente convoluciones con stride 2 y normalización) para estabilizar el entrenamiento profundo.
+
 \end{enumerate}
+
+Estos avances representan la convergencia entre los mundos de las CNNs y los Transformers: las CNNs modernas (ConvNeXt) adoptan la "macro-arquitectura" de los Transformers (GELU, LayerNorm, parches), mientras que los Transformers modernos (Swin, MaxViT) reintroducen la jerarquía y la localidad propias de las convoluciones.
+
+
+\subsection{Selección de Modelos Propuesta (Revisada)}
+
+Considerando la arquitectura del pipeline definido: \textit{Identificación de Hoja (Fase 1) $\rightarrow$ Extracción de Lesión vía YOLO (Fase 2) $\rightarrow$ Identificación de Enfermedad en recorte (Fase 3)}, la selección de modelos debe adaptarse a la naturaleza de los datos de entrada en cada etapa.
+
+\subsubsection{Fase 1: Clasificación de Tipos de Planta}
+\textbf{Entrada:} Imagen completa de la hoja/planta (con fondo, tallo, etc.).
+\textbf{Modelo Elegido: EfficientNetV2 (Variante S)}
+
+\textbf{Justificación:}
+\begin{itemize}
+\item \textbf{Reconocimiento de Formas:} Para distinguir entre tipos de plantas (ej. maíz vs. tomate), el modelo debe basarse en características geométricas de bajo y medio nivel (forma del borde, venación, estructura del tallo). Las redes convolucionales (CNNs) son naturalmente eficientes extrayendo estas características de forma.
+\item \textbf{Velocidad de Entrada:} Al ser el primer filtro, EfficientNetV2 ofrece la mejor latencia. Su uso de \textit{Fused-MBConv} en las primeras capas procesa la imagen agresivamente sin perder información espacial relevante para la morfología de la planta.
+\item \textbf{Robustez al Fondo:} EfficientNetV2, gracias a su entrenamiento con aumentos progresivos, suele generalizar bien incluso si el fondo de la imagen varía, centrándose en la estructura principal del objeto.
+\end{itemize}
+
+\subsubsection{Fase 3: Clasificación de Enfermedades (Sobre recortes)}
+\textbf{Entrada:} Imagen recortada ("macro") centrada específicamente en la lesión o síntoma, extraída previamente por YOLO.
+\textbf{Modelo Elegido: MaxViT (o ConvNeXt)}
+
+\textbf{Justificación del cambio de enfoque:}
+Al trabajar con recortes (crops), eliminamos el ruido del fondo y la necesidad de buscar la enfermedad. El problema se convierte en distinción de texturas de alta frecuencia. Por ejemplo, distinguir entre \textit{Tizón Temprano} (anillos concéntricos) y \textit{Mancha Bacteriana} (puntos negros con halo amarillo).
+
+\textbf{Opción A: MaxViT (Recomendada por Precisión)}
+\begin{itemize}
+\item \textbf{Híbrido Perfecto para Macro:} MaxViT inicia cada bloque con capas \textit{MBConv} (convolucionales). Las convoluciones son excelentes detectores de texturas, bordes y gradientes de color, que son vitales en una fotografía "macro" de una enfermedad.
+\item \textbf{Relación Centro-Periferia:} Aunque el recorte es pequeño, la atención (\textit{Block Attention}) permite al modelo relacionar el centro de la lesión (ej. tejido necrótico) con su periferia (ej. halo clorótico). Esta relación estructural es lo que define a muchas patologías, y MaxViT lo captura mejor que una CNN pura.
+\end{itemize}
+
+\textbf{Opción B: ConvNeXt (Recomendada por Coherencia/Simplicidad)}
+\begin{itemize}
+\item \textbf{Dominio de la Textura:} ConvNeXt es una arquitectura puramente convolucional pero modernizada. Históricamente, las CNNs superan a los Transformers puros (como ViT) en tareas donde la textura es más importante que la forma global. Al ser un recorte de la enfermedad, la "forma" importa menos que la "textura" del hongo o bacteria.
+\item \textbf{Invarianza:} Al trabajar con recortes de YOLO, la lesión puede no estar perfectamente centrada o tener distintos tamaños. ConvNeXt maneja muy bien estas variaciones sin necesidad de embeddings posicionales complejos.
+\end{itemize}
+
+\subsubsection{Conclusión de la Selección}
+
+Se propone utilizar \textbf{EfficientNetV2} para la Fase 1 debido a su eficiencia en características morfológicas globales, y \textbf{MaxViT} para la Fase 3.
+
+La elección de \textbf{MaxViT} sobre un Transformer puro (como Swin) para la Fase 3 es estratégica: al tener componentes convolucionales fuertes (MBConv), no pierde la capacidad de analizar la "rugosidad" y los detalles finos de la enfermedad, pero su mecanismo de atención le permite entender la estructura compleja de la lesión mejor que una CNN clásica. Es el modelo que mejor se adapta a la variabilidad visual de las enfermedades en imágenes de primer plano.
