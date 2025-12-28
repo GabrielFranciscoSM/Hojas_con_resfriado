@@ -58,13 +58,14 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
 
 *   **[Manzanas](https://www.mdpi.com/2073-4395/14/6/1331):** 
 *   **[Tomates](https://universe.roboflow.com/hs1111/tomatoes-ddzvv):** 
-    *   Clases: 
-        *   Early blight:
+    * imágenes: 3649
+    *   Clases (2-4): 
+        *   Early blight (1792):
             *   Early Blight: 554 imágenes
             *   Early_blight: 995
             *   Tomato - Early Blight: 185
             *   Tomato Early Blight: 58
-        *   late blight:
+        *   late blight (1551):
             *   late blight: 554
             *   late_blight: 1
             *   Late_blight: 996
