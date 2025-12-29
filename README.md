@@ -56,16 +56,24 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
 
 ### Datasets finales
 
-*   **[Manzanas](https://www.mdpi.com/2073-4395/14/6/1331):** 
+*   **[Manzanas](https://www.scidb.cn/en/detail?dataSetId=0e1f57004db842f99668d82183afd578):** 
+    * imágenes: 1641
+    * Clases: 5
+        *   **Alternaria leaf spot**: 278 imágenes
+        *   **Brown spot**: 215 imágenes
+        *   **Gray spot**: 395 imágenes
+        *   **Healthy leaf**: 409 imágenes
+        *   **Rust**: 344 imágenes
+    
 *   **[Tomates](https://universe.roboflow.com/hs1111/tomatoes-ddzvv):** 
     * imágenes: 3649
     *   Clases (2-4): 
-        *   Early blight (1792):
+        *   **Early blight** (1792 imágenes) (5290 patches):
             *   Early Blight: 554 imágenes
             *   Early_blight: 995
             *   Tomato - Early Blight: 185
             *   Tomato Early Blight: 58
-        *   late blight (1551):
+        *   **late blight** (1551 imágenes) (3055 patches):
             *   late blight: 554
             *   late_blight: 1
             *   Late_blight: 996
