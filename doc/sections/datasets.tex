@@ -32,15 +32,26 @@ requisitos estrictos derivados de la arquitectura del sistema (Clasificador + YO
     durante el entrenamiento.
 \end{itemize}
 
-Dado que no existe un único dataset público que satisfaga plenamente todas estas 
-necesidades para múltiples especies simultáneamente, se ha optado por la 
-agregación de fuentes heterogéneas.
-
 % 2. Descripción Técnica
 \subsection{Descripción de los Datasets}
-Basándonos en los criterios anteriores, se han seleccionado los siguientes 
-datasets públicos. La Tabla~\ref{tab:datasets_summary} resume sus 
-características principales.
+La búsqueda de conjuntos de datos adecuados para este estudio ha presentado 
+desafíos significativos, principalmente debido a la escasez de datasets que 
+cumplan simultáneamente con los requisitos de calidad de imagen, precisión en 
+las anotaciones y especificidad taxonómica necesarios para nuestra arquitectura 
+de dos etapas.
+
+Para abordar esta limitación, se llevó a cabo una investigación exhaustiva en 
+repositorios especializados como Roboflow y Kaggle, así como en la literatura 
+científica reciente. La metodología de búsqueda se centró en identificar 
+colecciones que no solo ofrecieran un volumen suficiente de imágenes, sino que 
+también incluyeran anotaciones de tipo \textit{bounding box} verificadas para 
+tareas de detección de objetos, descartando aquellos datasets limitados únicamente 
+a etiquetas de clasificación global que no permitirían el entrenamiento efectivo 
+del modelo YOLO.
+
+Tras este proceso de filtrado y validación, se han seleccionado los siguientes datasets 
+públicos que mejor se alinean con los objetivos del proyecto. La Tabla~\ref{tab:datasets_summary} 
+resume sus características principales.
 
 \begin{table*}[t]
     \centering
@@ -50,18 +61,26 @@ características principales.
         \toprule
         \textbf{Dataset} & \textbf{Imágenes} & \textbf{Especies} & \textbf{Clases (Enf.)} & \textbf{Anotación} \\
         \midrule
-        Apple Scab (Roboflow) & 2,400 & 1 & 3 & Bounding Box \\
-        Tomato Diseases \cite{tomatoes-ddzvv_dataset} & 1,500 & 1 & 5 & Bounding Box \\
+        Apple Tree Leaf Disease Segmentation Dataset \cite{apples_dataset} & 1641 & 1 & 5 & Segmentation \\
+        Tomato Diseases \cite{tomatoes-ddzvv_dataset} & 3649 & 1 & 2 & Bounding Box \\
         \bottomrule
     \end{tabular}
 \end{table*}
 
+Usando ambos datasets conjuntamente, se pueden cumplir los 
+requisitos de compatibilidad con la arquitectura en dos etapas, 
+ya que se dispone de imágenes con etiquetas a nivel de imagen (especie) y 
+anotaciones a nivel de región (bounding boxes y segmentación para lesiones).
+
 % 3. Análisis Exploratorio (EDA)
 \subsection{Análisis Exploratorio de Datos}
-Para garantizar la robustez de los modelos, se ha realizado un análisis de la distribución de clases y la variabilidad de las muestras.
+Para garantizar la robustez de los modelos, se ha realizado un análisis de la 
+distribución de clases y la variabilidad de las muestras.
 
 \subsubsection{Distribución de Clases}
-Como se observa en la Figura~\ref{fig:class_dist}, existe un desbalanceo significativo en ciertas clases de enfermedades, lo cual ha motivado el uso de técnicas de aumento de datos.
+Como se observa en la Figura~\ref{fig:class_dist}, existe un desbalanceo significativo 
+en ciertas clases de enfermedades, lo cual ha motivado el uso de técnicas de aumento 
+de datos.
 
 % Placeholder para la figura de distribución
 \begin{figure}[h]
@@ -72,11 +91,19 @@ Como se observa en la Figura~\ref{fig:class_dist}, existe un desbalanceo signifi
 \end{figure}
 
 \subsubsection{Análisis de Bounding Boxes}
-Para el modelo YOLO, es crítico analizar el tamaño relativo de las lesiones. La Figura~\ref{fig:bbox_analysis} muestra la distribución espacial y de tamaño de las cajas delimitadoras, lo que justifica la elección de los \textit{anchors} predeterminados.
+
+Para poder trabajar con el modelo YOLO, es necesario transformar las anotaciones 
+de segmentación en bounding boxes. Para ello se ha usado la función findcontours 
+de OpenCV https://docs.opencv.org/4.x/d4/d73/tutorial_py_contours_begin.html
+(también podemos usar masks_to_boxes de pytorch https://docs.pytorch.org/vision/main/generated/torchvision.ops.masks_to_boxes.html).
+
 
 % 4. Preprocesamiento
 \subsection{Preprocesamiento y Particionamiento}
-Las imágenes han sido redimensionadas a $640 \times 640$ píxeles para la etapa de detección y normalizadas utilizando la media y desviación estándar de ImageNet.
+Las imágenes han sido redimensionadas a $X \times X$ píxeles para la etapa de detección 
+y normalizadas utilizando la media y desviación estándar de ImageNet, ya que este 
+dataset contiene una gran cantidad de imágenes naturales y por lo tanto ha generalizado 
+correctamente los valores medios y desviaciones estándar de este tipo de imágenes.
 
 El conjunto de datos se ha dividido siguiendo un esquema estratificado:
 \begin{itemize}
@@ -85,4 +112,4 @@ El conjunto de datos se ha dividido siguiendo un esquema estratificado:
     \item \textbf{Prueba (Test):} 15\%
 \end{itemize}
 
-Para mitigar el sobreajuste, se aplicaron transformaciones aleatorias durante el entrenamiento, incluyendo rotaciones ($\pm 15^\circ$), volteo horizontal y variaciones de brillo/contraste.
+
