@@ -77,7 +77,7 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
             *   late blight: 554
             *   late_blight: 1
             *   Late_blight: 996
-        *   Leaf blight: 216
+        *   ***Leaf blight**: 216
         *   Disease: 92 imágenes
 
 
@@ -87,14 +87,14 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
        *   **Black Spot** (5565 patches)
        *   **Powdery Mildew**(7346 patches)
        *   **Normal**(1598)
-       *   Downy Mildew(1479)
+       *  **Downy Mildew**(1479)
        
 * **[Patatas](https://app.roboflow.com/germanrv/potatoes_leaf-diseases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true)**
    * imagenes: 812
    *   Clases: (3)
-       * early bright (18069 patches)
-       * late bright   (1379 patches)
-       * healthy (364 patches)
+       * **early bright** (18069 patches)
+       * **late bright**   (1379 patches)
+       * **healthy** (364 patches)
   
 
 
