@@ -1,0 +1,10 @@
+Model,Class,Precision,Recall,F1-Score,Support
+EfficientNetV2-S,manzana,0.9431,0.9748,0.9587,119
+EfficientNetV2-S,patatas,0.9841,1.0,0.992,124
+EfficientNetV2-S,rosas,0.991,0.9402,0.9649,117
+MaxViT-Tiny,manzana,1.0,1.0,1.0,119
+MaxViT-Tiny,patatas,1.0,1.0,1.0,124
+MaxViT-Tiny,rosas,1.0,1.0,1.0,117
+MobileNetV3-Small,manzana,0.95,0.958,0.954,119
+MobileNetV3-Small,patatas,0.9688,1.0,0.9841,124
+MobileNetV3-Small,rosas,0.9732,0.9316,0.952,117

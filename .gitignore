@@ -326,3 +326,6 @@ TSWLatexianTemp*
 #*Notes.bib
 
 data
+
+.venv/
+*.pth
