@@ -1,0 +1,4 @@
+Model,Test Accuracy (%),Test Loss,Precision (Macro),Recall (Macro),F1-Score (Macro)
+EfficientNetV2-S,97.5,0.065,0.9761,0.9746,0.9748
+MaxViT-Tiny,100.0,0.0058,1.0,1.0,1.0
+MobileNetV3-Small,96.39,0.1075,0.964,0.9632,0.9634

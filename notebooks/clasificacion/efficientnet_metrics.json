@@ -1,0 +1,28 @@
+{
+  "model": "EfficientNetV2-S",
+  "test_accuracy": 97.5,
+  "test_loss": 0.06497066149798532,
+  "precision_macro": 0.9761478067929681,
+  "recall_macro": 0.97456768756579,
+  "f1_macro": 0.9747879285293767,
+  "per_class": {
+    "manzana": {
+      "precision": 0.9365079365079365,
+      "recall": 0.9915966386554622,
+      "f1": 0.963265306122449,
+      "support": 119
+    },
+    "patatas": {
+      "precision": 0.9919354838709677,
+      "recall": 0.9919354838709677,
+      "f1": 0.9919354838709677,
+      "support": 124
+    },
+    "rosas": {
+      "precision": 1.0,
+      "recall": 0.9401709401709402,
+      "f1": 0.9691629955947136,
+      "support": 117
+    }
+  }
+}
