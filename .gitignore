@@ -329,3 +329,5 @@ data
 
 .venv/
 *.pth
+data_balanced/
+data_clasification/

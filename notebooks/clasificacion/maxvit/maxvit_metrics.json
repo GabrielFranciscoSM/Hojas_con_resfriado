@@ -1,7 +1,7 @@
 {
   "model": "MaxViT-Tiny",
   "test_accuracy": 100.0,
-  "test_loss": 0.00369333957011501,
+  "test_loss": 0.005824388111553465,
   "precision_macro": 1.0,
   "recall_macro": 1.0,
   "f1_macro": 1.0,
