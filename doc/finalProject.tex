@@ -14,14 +14,9 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
-\usepackage{tabularx}
-\usepackage{xspace}
 
 \newcommand{\latex}{\LaTeX\xspace}
 \newcommand{\tex}{\TeX\xspace}
-
-\newcommand{\cmark}{\checkmark}
-\newcommand{\xmark}{\texttimes}
 
 
 % It is strongly recommended to use hyperref, especially for the review version.
@@ -43,62 +38,79 @@
 \Crefname{table}{Table}{Tables}
 \crefname{table}{Tab.}{Tabs.}
 
-
-%%%%%%%%% PAPER ID  - PLEASE UPDATE
-\def\cvprPaperID{*****} % *** Enter the CVPR Paper ID here
-\def\confName{CVPR}
-\def\confYear{2022}
-
-
 \begin{document}
 
-%%%%%%%%% TITLE
-\title{Title of the Final Project}
+%%%%%%%%% TÍTULO - POR FAVOR ACTUALIZAR
+\title{Detección y Clasificación de Patógenos Foliares mediante Visión por Computador}
 
-\author{First Author\\
-%Institution1\\
-%Institution1 address\\
-{\tt\small firstauthor@i1.org}
-% For a paper whose authors are all at the same institution,
-% omit the following lines up until the closing ``}''.
-% Additional authors and addresses can be added with ``\and'',
-% just like the second author.
-% To save space, use either the email address or home page, not both
+\author{Primer Autor\\
+%Institución1\\
+%Dirección de Institución1\\
+{\tt\small primerautor@i1.org}
+% Para un artículo cuyos autores pertenecen todos a la misma institución,
+% omita las siguientes líneas hasta el cierre ``}''.
+% Se pueden añadir autores y direcciones adicionales con ``\and'',
+% igual que el segundo autor.
+% Para ahorrar espacio, use el correo electrónico o la página web, no ambos
 \and
-Second Author\\
-%Institution2\\
-%First line of institution2 address\\
-{\tt\small secondauthor@i2.org}
+Segundo Autor\\
+%Institución2\\
+%Primera línea de dirección de institución2\\
+{\tt\small segundoautor@i2.org}
 \and
-Third Author\\
-{\tt\small thirdauthor@i2.org}
+Tercer Autor\\
+{\tt\small tercerautor@i2.org}
 \and
-Fourth Author\\
-{\tt\small fourthauthor@i2.org}
+Cuarto Autor\\
+{\tt\small cuartoautor@i2.org}
 }
 \maketitle
 
-%%%%%%%%% ABSTRACT
+%%%%%%%%% RESUMEN
 \begin{abstract}
-   Brief summary of the work developed as well as the main results and contributions. 
+   Breve resumen del trabajo desarrollado, así como los principales resultados y contribuciones. 
    
    
 \end{abstract}
 
-%%%%%%%%% BODY TEXT
-\input{sections/introduction}
+%%%%%%%%% CUERPO DEL TEXTO
+\section{Introducción}
+\label{sec:intro}
 
-\input{sections/background}
+Aquí se describe el problema a resolver (¿qué queremos hacer?), la motivación (¿por qué es relevante hacerlo?), y los objetivos (¿qué objetivos específicos vamos a abordar para resolver el problema?).
 
-\input{sections/related_works}
+Usamos el formato \LaTeX\ de la conferencia \href{https://en.wikipedia.org/wiki/Conference_on_Computer_Vision_and_Pattern_Recognition}{CVPR}. Este documento puede escribirse tanto en inglés como en español. 
 
-\input{sections/methods}
+Lo que sigue es una aproximación tentativa de las secciones que el documento debería tener. Si los estudiantes consideran que necesitan otras, así como subdividir las secciones en diferentes subsecciones, pueden hacerlo sin problema.
 
-\input{sections/datasets}
+Los estudiantes pueden inspirarse en la página web de proyectos finales de \href{http://cs231n.stanford.edu/index.html}{cs231n}: \url{http://cs231n.stanford.edu/project.html}, donde se presentan y desarrollan diferentes proyectos. 
 
-\input{sections/experiments}
+Este informe final completo puede tener de 6 a 8 páginas (ni más ni menos). 
 
-\input{sections/conclusions}
+\section{Fundamentos Teóricos}
+
+Esta sección presenta los conceptos fundamentales necesarios para entender el trabajo.
+
+
+\section{Trabajos Relacionados}
+
+Presenta lo que se ha hecho en el campo previamente, y cuáles son los mejores métodos actualmente. Es muy importante, en general, no solo en esta sección, documentar adecuadamente la literatura relevante. Para ello, debe usar el archivo $.bib$, de la manera que muestro aquí: \cite{mesejo2016computer, lathuiliere2019comprehensive, vargas2023deep}
+
+\section{Métodos}
+
+Descripción detallada de los métodos utilizados y/o propuestos, y justificación clara de por qué se usan estos métodos y no otros.
+
+\section{Experimentos}
+
+Aquí se presentan los datos utilizados, el protocolo de validación experimental, las métricas usadas, los experimentos realizados, los resultados obtenidos y su discusión.
+
+\subsection{Conjunto de Datos}
+
+\section{Conclusiones}
+
+Sección que presenta, brevemente y a modo de resumen, las principales conclusiones del trabajo realizado. También suele incluir posibles trabajos futuros. Es decir, cuáles son las líneas más prometedoras para continuar con este trabajo, así como posibles propuestas de mejora. IMPORTANTE: estas son las conclusiones científicas alcanzadas en el proyecto; ¡no tus conclusiones personales sobre el trabajo que has realizado!
+
+
 
 %%%%%%%%% REFERENCES
 {\small
