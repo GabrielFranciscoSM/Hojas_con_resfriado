@@ -101,11 +101,11 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
 ## 7. TODOS
 
 *   Datasets
-    *   [X ] Elegir dataset adecuado, lo suficientemente grande y con suficientes ejemplos de plantas y enfermedades "similares"
+    *   [X] Elegir dataset adecuado, lo suficientemente grande y con suficientes ejemplos de plantas y enfermedades "similares"
     *   [X] Estudiar si hay que preprocesar / aumentar el dataset
-    *   [X ] Documentar Dataset
+    *   [X] Documentar Dataset
 *   Modelo Clasificación
-    *   [ X] Estudiar / Elegir Modelo de clasificación inicial del pipeline
+    *   [X] Estudiar / Elegir Modelo de clasificación inicial del pipeline
 *   Object detection
     *   [X] Estudiar modelos de detección de objetoas
     *   [X] Estudiar YOLO (diferentes versiones y/o implementación from scratch)
