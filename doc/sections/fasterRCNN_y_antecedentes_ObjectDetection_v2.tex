@@ -1,0 +1,129 @@
+% CVPR 2022 Paper Template
+% based on the CVPR template provided by Ming-Ming Cheng (https://github.com/MCG-NKU/CVPR_Template)
+% modified and extended by Stefan Roth (stefan.roth@NOSPAMtu-darmstadt.de)
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+%\usepackage[review]{cvpr}      % To produce the REVIEW version
+\usepackage{cvpr}              % To produce the CAMERA-READY version
+%\usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+
+\newcommand{\latex}{\LaTeX\xspace}
+\newcommand{\tex}{\TeX\xspace}
+
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, e.g. with the
+% file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete
+% ReviewTempalte.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you
+%  should be clear).
+\usepackage[pagebackref,breaklinks,colorlinks]{hyperref}
+
+
+% Support for easy cross-referencing
+\usepackage[capitalize]{cleveref}
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\cvprPaperID{*****} % *** Enter the CVPR Paper ID here
+\def\confName{CVPR}
+\def\confYear{2022}
+
+
+\begin{document}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{Title of the Final Project}
+
+\author{First Author\\
+%Institution1\\
+%Institution1 address\\
+{\tt\small firstauthor@i1.org}
+% For a paper whose authors are all at the same institution,
+% omit the following lines up until the closing ``}''.
+% Additional authors and addresses can be added with ``\and'',
+% just like the second author.
+% To save space, use either the email address or home page, not both
+\and
+Second Author\\
+%Institution2\\
+%First line of institution2 address\\
+{\tt\small secondauthor@i2.org}
+\and
+Third Author\\
+{\tt\small thirdauthor@i2.org}
+\and
+Fourth Author\\
+{\tt\small fourthauthor@i2.org}
+}
+\maketitle
+
+%%%%%%%%% ABSTRACT
+\begin{abstract}
+   Brief summary of the work developed as well as the main results and contributions. 
+   
+   
+\end{abstract}
+
+%%%%%%%%% BODY TEXT
+\section{Introduction}
+
+\section{Background}
+\subsection{Object Detection}
+
+\subsubsection{Antecedentes históricos}
+
+El objetivo fundamental en detección de objetos es localizar ("Bounding Boxes") y clasificar regiones de interés. La aproximación inicial, "Sliding Window", resulta inviable computacionalmente al procesar todas las sub-ventanas posibles.
+
+Como solución surgió \textbf{R-CNN}, un modelo de 3 etapas: 1) Búsqueda selectiva para recortar regiones probables (priorizando el Recall), 2) Extracción de características por región (CNN) y 3) Clasificación (SVM). Sus limitaciones principales son el alto coste de procesar regiones por separado y la falta de aprendizaje en la búsqueda selectiva. Posteriormente, \textbf{Fast R-CNN} mejoró la eficiencia aplicando una sola CNN a la imagen completa para obtener un \textit{feature map}, aunque seguía dependiendo de un algoritmo externo y fijo para la propuesta de regiones.
+
+\subsubsection{Faster R-CNN}
+
+\textbf{Faster R-CNN} integra la propuesta de regiones dentro de la red neuronal, reemplazando el algoritmo fijo por una \textit{Region Proposal Network} (RPN) entrenable y más rápida. Su funcionamiento general es:
+
+\begin{itemize}
+    \item Se definen "Anchor points" sobre el \textit{feature map} de la imagen, actuando como centros de posibles regiones con diferentes escalas y ratios.
+    \item La RPN procesa estos puntos y, mediante capas con kernels 1x1, predice simultáneamente: \textbf{Scores} (probabilidad de objeto vs background) y \textbf{Coordenadas } (coords de 2 esquinas opuestas del Bounding Box, ajustandolo respecto a la estimación del anchor point).
+\end{itemize}
+
+Cabe destacar que la familia R-CNN corresponde a detectores de \textbf{dos etapas} (propuesta de región seguida de clasificación), lo que implica "mirar la imagen dos veces". La siguiente sección abordará arquitecturas de una sola etapa, diseñadas para mayor velocidad.
+
+\subsubsection{YOLO}
+
+\section{Related Works}
+
+
+\section{Methods}
+
+
+\section{Experiments}
+
+
+\subsection{Dataset}
+
+\section{Conclusions}
+
+
+
+%%%%%%%%% REFERENCES
+{\small
+\bibliographystyle{ieee_fullname}
+\bibliography{egbib}
+}
+
+\end{document}
