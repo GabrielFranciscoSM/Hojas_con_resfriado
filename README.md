@@ -34,12 +34,10 @@ Este proyecto busca resolver esta ambigüedad desarrollando un sistema automatiz
 
 ## 3. Metodología Propuesta
 
-El sistema propuesto consiste en un pipeline de tres etapas que procesa una imagen de una hoja:
+El sistema propuesto consiste en un pipeline de dos etapas que procesa una imagen de una hoja:
 
-1.  **Clasificación de Especie:** Una Red Neuronal Convolucional (CNN) inicial recibe la imagen completa de la hoja y la clasifica para determinar la especie de la planta (ej. tomate, patata, manzano).
-2.  **Detección de Lesiones:** Un modelo de detección de objetos, como **YOLO (You Only Look Once)**, analiza la imagen para localizar y dibujar cajas delimitadoras (bounding boxes) alrededor de las áreas que presentan síntomas de enfermedad.
-3.  **Clasificación del Patógeno:** Las regiones de interés (los recortes de las cajas delimitadoras) generadas por YOLO son procesadas por una segunda CNN, especializada en clasificar el tipo de patógeno (ej. mildiu, oídio, roya) o determinar si el tejido es sano.
-
+1.  **Clasificación de Especie:** Una Red Neuronal Convolucional (CNN) inicial recibe la imagen completa de la hoja y la clasifica para determinar la especie de la planta (ej. rosa, patata, manzano).
+2.  **Detección de Lesiones:** Un modelo de detección de objetos, como **YOLO (You Only Look Once)**, analiza la imagen para localizar y dibujar cajas delimitadoras (bounding boxes) alrededor de las áreas que presentan síntomas de enfermedad y a la vez clasificar el tipo de enfermedad.
 ---
 
 ## 4. Datasets
@@ -65,29 +63,14 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
         *   **Healthy leaf**: 409 imágenes
         *   **Rust**: 344 imágenes
     
-*   **[Tomates](https://universe.roboflow.com/hs1111/tomatoes-ddzvv):** 
-    * imágenes: 3649
-    *   Clases (2-4): 
-        *   **Early blight** (1792 imágenes) (5290 patches):
-            *   Early Blight: 554 imágenes
-            *   Early_blight: 995
-            *   Tomato - Early Blight: 185
-            *   Tomato Early Blight: 58
-        *   **late blight** (1551 imágenes) (3055 patches):
-            *   late blight: 554
-            *   late_blight: 1
-            *   Late_blight: 996
-        *   ***Leaf blight**: 216
-        *   Disease: 92 imágenes
-
 
 *  **[Rosas](https://universe.roboflow.com/rose-leaf-diseases/rose-leaf-diseases):**
    * imagenes: 2725
    *   Clases: (4):
        *   **Black Spot** (5565 patches)
        *   **Powdery Mildew**(7346 patches)
-       *   **Normal**(1598)
-       *  **Downy Mildew**(1479)
+       *   **Normal**(1598 patches)
+       *  **Downy Mildew**(1479 patches)
        
 * **[Patatas](https://app.roboflow.com/germanrv/potatoes_leaf-diseases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true)**
    * imagenes: 812
@@ -118,16 +101,16 @@ La viabilidad del proyecto depende de la disponibilidad de datos etiquetados par
 ## 7. TODOS
 
 *   Datasets
-    *   [ ] Elegir dataset adecuado, lo suficientemente grande y con suficientes ejemplos de plantas y enfermedades "similares"
-    *   [ ] Estudiar si hay que preprocesar / aumentar el dataset
-    *   [ ] Documentar Dataset
+    *   [X ] Elegir dataset adecuado, lo suficientemente grande y con suficientes ejemplos de plantas y enfermedades "similares"
+    *   [X] Estudiar si hay que preprocesar / aumentar el dataset
+    *   [X ] Documentar Dataset
 *   Modelo Clasificación
-    *   [ ] Estudiar / Elegir Modelo de clasificación inicial del pipeline
+    *   [ X] Estudiar / Elegir Modelo de clasificación inicial del pipeline
 *   Object detection
-    *   [ ] Estudiar modelos de detección de objetoas
-    *   [ ] Estudiar YOLO (diferentes versiones y/o implementación from scratch)
+    *   [X] Estudiar modelos de detección de objetoas
+    *   [X] Estudiar YOLO (diferentes versiones y/o implementación from scratch)
 *   Finetuning
-    *   [ ] Estudiar necesidad y factibilidad de hacer finetining para los modelos (los 3)
+    *   [X] Estudiar necesidad y factibilidad de hacer finetining para los modelos (los 3)
 *   Integración
     *   [ ] Diseñar el pipeline con los diferentes modelos
     *   [ ] Testear y afinar los modelos
