@@ -40,61 +40,103 @@
 
 \begin{document}
 
-%%%%%%%%% TÍTULO - POR FAVOR ACTUALIZAR
+%%%%%%%%% TÍTULO
+
 \title{Detección y Clasificación de Patógenos Foliares mediante Visión por Computador}
 
-\author{Primer Autor\\
-%Institución1\\
-%Dirección de Institución1\\
-{\tt\small primerautor@i1.org}
-% Para un artículo cuyos autores pertenecen todos a la misma institución,
-% omita las siguientes líneas hasta el cierre ``}''.
-% Se pueden añadir autores y direcciones adicionales con ``\and'',
-% igual que el segundo autor.
-% Para ahorrar espacio, use el correo electrónico o la página web, no ambos
-\and
-Segundo Autor\\
-%Institución2\\
-%Primera línea de dirección de institución2\\
-{\tt\small segundoautor@i2.org}
-\and
-Tercer Autor\\
-{\tt\small tercerautor@i2.org}
-\and
-Cuarto Autor\\
-{\tt\small cuartoautor@i2.org}
+\author{
+   Gabriel Sánchez Muñoz\\{\tt\small gabrielsm@correo.ugr.es}
+   \and
+   Germán Rodríguez Vidal\\{\tt\small germanrv@correo.ugr.es}
+   \and
+   Pablo García Bas\\{\tt\small pablogb@correo.ugr.es}
+   \and
+   Miguel Ángel Moreno Castro\\{\tt\small miguelangelmc@correo.ugr.es}
 }
+
 \maketitle
 
 %%%%%%%%% RESUMEN
 \begin{abstract}
-   Breve resumen del trabajo desarrollado, así como los principales resultados y contribuciones. 
-   
-   
+   La detección temprana y precisa de enfermedades vegetales es crítica para la agricultura de precisión y la seguridad alimentaria.
+   Los enfoques actuales basados en Deep Learning, a pesar de mostrar resultados prometedores, suelen carecer de información contextual sobre el huésped, lo que limita su precisión en escenarios de múltiples cultivos. 
+   Este trabajo propone un enfoque jerárquico de dos etapas para abordar esta limitación. En primer lugar, se realiza una clasificación de la especie arbórea para establecer un contexto biológico y, posteriormente, un detector de objetos localiza y clasifica los patógenos específicos asociados a dicha especie.
+   Los resultados muestran que incorporar la identificación previa del huésped incrementa la precisión media (mAP) en un [X]\% respecto a los detectores genéricos de una sola etapa ("end-to-end"), demostrando la superioridad de los modelos condicionados biológicamente.
 \end{abstract}
 
 %%%%%%%%% CUERPO DEL TEXTO
 \section{Introducción}
 \label{sec:intro}
+Las enfermedades de las plantas representan una amenaza significativa para la seguridad alimentaria mundial y la estabilidad económica agrícola, causando pérdidas estimadas de hasta el 40\% en el rendimiento de los cultivos cada año [CITA]. 
+La identificación temprana y precisa de estas patologías es crucial para aplicar medidas de control eficaces y minimizar el uso de químicos. 
+Tradicionalmente, este diagnóstico ha dependido de la inspección visual manual por parte de expertos, un proceso que resulta laborioso, subjetivo y difícil de escalar a grandes explotaciones [CITA].
 
-Aquí se describe el problema a resolver (¿qué queremos hacer?), la motivación (¿por qué es relevante hacerlo?), y los objetivos (¿qué objetivos específicos vamos a abordar para resolver el problema?).
+En la última década, la visión por computador y, específicamente, el aprendizaje profundo, han emergido como herramientas poderosas para automatizar esta tarea. 
+El uso de Redes Neuronales Convolucionales (CNNs) ha permitido grandes avances tanto en la clasificación de imágenes (identificar si una hoja está enferma) como en la detección de objetos (localizar la lesión exacta en la hoja) [CITA]. 
+Sin embargo, la mayoría de las arquitecturas actuales abordan la detección de enfermedades como un problema monolítico donde los modelos se entrenan para detectar cualquier enfermedad en cualquier tipo de hoja simultáneamente, ignorando a menudo la estructura jerárquica natural de la taxonomía biológica.
 
-Usamos el formato \LaTeX\ de la conferencia \href{https://en.wikipedia.org/wiki/Conference_on_Computer_Vision_and_Pattern_Recognition}{CVPR}. Este documento puede escribirse tanto en inglés como en español. 
+Debido a que muchas patologías foliares comparten características visuales similares, independientemente de la especie, los detectores agnósticos al huésped sufren de una alta confusión inter-clase. 
+Esto suele derivar en predicciones erróneas donde se asocian enfermedades a plantas incompatibles, reduciendo la precisión y confiabilidad del sistema en aplicaciones del mundo real.
 
-Lo que sigue es una aproximación tentativa de las secciones que el documento debería tener. Si los estudiantes consideran que necesitan otras, así como subdividir las secciones en diferentes subsecciones, pueden hacerlo sin problema.
+Para resolver esto, proponemos un enfoque jerárquico que imita el diagnóstico experto donde primero se identifica la especie del árbol para simplificar la búsqueda de la enfermedad y luego se aplica un detector especializado para esa especie.
 
-Los estudiantes pueden inspirarse en la página web de proyectos finales de \href{http://cs231n.stanford.edu/index.html}{cs231n}: \url{http://cs231n.stanford.edu/project.html}, donde se presentan y desarrollan diferentes proyectos. 
+\section{Dataset}
 
-Este informe final completo puede tener de 6 a 8 páginas (ni más ni menos). 
+Para validar nuestro enfoque jerárquico, hemos confeccionado un \textit{dataset} que integra imágenes de tres cultivos: rosa, patata y manzana. 
+Las imágenes provienen de la plataforma Roboflow Universe, que contiene una gran cantidad de \textit{datasets} de código abierto, y han sido seleccionadas por su calidad y variedad de condiciones de iluminación.
 
-\section{Fundamentos Teóricos}
+\begin{itemize}
+   \item Rose Dataset: Consta de 2,725 imágenes y abarca 4 clases (Black Spot, Downy Mildew, Powdery Mildew y hojas sanas).
+   \item Potato Dataset: Comprende 812 imágenes distribuidas en [X] clases (típicamente Early Blight, Late Blight, Healthy).
+   \item Apple Dataset: Incluye 1582 imágenes que cubren 4 patologías (Alternaria Spot, Brown Spot, Gray Spot, Rust).
+\end{itemize}
 
-Esta sección presenta los conceptos fundamentales necesarios para entender el trabajo.
+El dataset combinado se dividió aleatoriamente en subconjuntos de Entrenamiento (70\%), Validación (15\%) y Prueba (15\%), preservando la estratificación de clases para garantizar una evaluación equilibrada.
+
+\section{Clasificación}
+
+Para el diseño del módulo de clasificación, hemos evaluado dos paradigmas principales del estado del arte, las arquitecturas basadas en Vision Transformers (ViT) y las Redes Neuronales Convolucionales (CNNs). 
+Nuestro objetivo fue contrastar la capacidad de modelado global de los Transformers frente a la eficiencia inductiva de las CNNs. 
+Adicionalmente, dada la orientación práctica de este proyecto hacia una futura aplicación móvil, se incluyó en el estudio un modelo diseñado específicamente para entornos de recursos limitados.
+
+\subsection{MaxViT}
+
+Dentro de la familia de los Transformers, MaxViT (Multi-Axis Vision Transformer) combina tanto mecanismos de atención global como convoluciones locales para capturar características a múltiples escalas.
+Su característica distintiva es el mecanismo de Atención Multi-Eje, que descompone el cálculo de atención en dos pasos lineales: atención local (Block Attention) para capturar texturas finas, y atención global dispersa (Grid Attention) para relacionar partes distantes de la imagen. 
+Esto lo convierte en un candidato ideal para capturar la complejidad visual de las enfermedades vegetales.
+
+\subsection{EfficientNetV2}
+
+Como representante de las CNNs modernas, optamos por EfficientNetV2. Esta arquitectura mejora a su predecesora mediante la introducción de bloques Fused-MBConv.
+Al sustituir ciertas convoluciones depthwise por convoluciones estándar 1$3 \times 3$ en las primeras capas y aplicar un "escalado compuesto" inteligente, EfficientNetV2 logra una velocidad de entrenamiento y una precisión superiores, posicionándose como una opción robusta para la clasificación taxonómica de las especies.23. 
+
+\subsection{MobileNet}
+
+Considerando la viabilidad de despliegue en dispositivos móviles (edge computing), evaluamos la familia MobileNet.
+La base de su eficiencia radica en las Convoluciones Depthwise Separables, que factorizan la operación de convolución estándar en dos capas más ligeras (profundidad y punto a punto), reduciendo drásticamente la cantidad de parámetros y operaciones (FLOPs). 
+Aunque su capacidad de representación es menor que los modelos anteriores, su inclusión es crítica para evaluar el compromiso (trade-off) entre precisión y latencia en una aplicación real para agricultores.
 
 
-\section{Trabajos Relacionados}
 
-Presenta lo que se ha hecho en el campo previamente, y cuáles son los mejores métodos actualmente. Es muy importante, en general, no solo en esta sección, documentar adecuadamente la literatura relevante. Para ello, debe usar el archivo $.bib$, de la manera que muestro aquí: \cite{mesejo2016computer, lathuiliere2019comprehensive, vargas2023deep}
+\section{Detección de Objetos}
+
+El objetivo fundamental en detección de objetos es localizar ("Bounding Boxes") y clasificar regiones de interés. La aproximación inicial, "Sliding Window", resulta inviable computacionalmente al procesar todas las sub-ventanas posibles.
+
+Como solución surgió \textbf{R-CNN}, un modelo de 3 etapas: 1) Búsqueda selectiva para recortar regiones probables (priorizando el Recall), 2) Extracción de características por región (CNN) y 3) Clasificación (SVM). Sus limitaciones principales son el alto coste de procesar regiones por separado y la falta de aprendizaje en la búsqueda selectiva. Posteriormente, \textbf{Fast R-CNN} mejoró la eficiencia aplicando una sola CNN a la imagen completa para obtener un \textit{feature map}, aunque seguía dependiendo de un algoritmo externo y fijo para la propuesta de regiones.
+
+\subsection{Faster R-CNN}
+
+\textbf{Faster R-CNN} integra la propuesta de regiones dentro de la red neuronal, reemplazando el algoritmo fijo por una \textit{Region Proposal Network} (RPN) entrenable y más rápida. Su funcionamiento general es:
+
+\begin{itemize}
+   \item Se definen "Anchor points" sobre el \textit{feature map} de la imagen, actuando como centros de posibles regiones con diferentes escalas y ratios.
+   \item La RPN procesa estos puntos y, mediante capas con kernels 1x1, predice simultáneamente: \textbf{Scores} (probabilidad de objeto vs background) y \textbf{Coordenadas } (coords de 2 esquinas opuestas del Bounding Box, ajustandolo respecto a la estimación del anchor point).
+\end{itemize}
+
+Cabe destacar que la familia R-CNN corresponde a detectores de \textbf{dos etapas} (propuesta de región seguida de clasificación), lo que implica "mirar la imagen dos veces". La siguiente sección abordará arquitecturas de una sola etapa, diseñadas para mayor velocidad.
+\subsection{YOLO}
+
+
 
 \section{Métodos}
 
