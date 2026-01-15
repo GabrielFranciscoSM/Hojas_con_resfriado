@@ -143,9 +143,60 @@ Descripción detallada de los métodos utilizados y/o propuestos, y justificaci�
 
 \section{Experimentos}
 
-Aquí se presentan los datos utilizados, el protocolo de validación experimental, las métricas usadas, los experimentos realizados, los resultados obtenidos y su discusión.
+Para la elección del mejor metodo para detección y clasificación de patógenos foliares, se ha utilizado el conjunto de datos Global Plant Dataset, un corpus heterogéneo , compuesto por los anteriores datsets mencionados , con ellos se han realizado diversos experimentos. A continuación se describen los experimentos realizados y los resultados obtenidos.\\
 
-\subsection{Conjunto de Datos}
+\subsection{Metricas de Evaluación}
+Para la evaluación de los modelos de clasificación, se han utilizado las métricas de precisión, mAP 50 y mAP 50-95. La precisión mide la proporción de predicciones correctas sobre el total de predicciones realizadas. El mAP 50 (mean Average Precision at IoU 0.5) evalúa la precisión promedio considerando un umbral de Intersección sobre Unión (IoU) del 50\%, mientras que el mAP 50-95 promedia la precisión en múltiples umbrales de IoU, proporcionando una evaluación más robusta del rendimiento del modelo.\\
+
+Se diseñaron tres experimentos principales para comparar los enfoques de detección y clasificación:\\
+
+\subsection{Arquitecturas del pipeline implementadas}
+El primer  experimento (Baseline Monolitico) consiste en entrenar un único modelo de detección de objetos (YOLOv8) para identificar todas las clases de patógenos foliares sin considerar la especie del árbol huésped. Este modelo debe distinguir simultáneamente entre todas las enfermedades de todas las plantas, representando el enfoque estándar "end-to-end". Este enfoque sirve como línea base para evaluar la efectividad de los métodos jerárquicos.\\
+
+El segundo experimento (Pipeline Híbrido Unificado)  implementa un enfoque jerárquico en dos etapas. En la primera etapa, se entrenó un modelo de clasificación de imágenes basado en MobileNet para identificar la especie del árbol (rosa, patata o manzana), alcanzando una exactitud del 99.84\%. En la segunda etapa, la predicción de la especie actúa como un mecanismo de condicionamiento lógico (masking) sobre un único detector YOLOv8, restringiendo el espacio de búsqueda exclusivamente a las enfermedades biológicamente plausibles para la especie identificada. Este enfoque permite reducir drásticamente las confusiones entre especies sin incrementar significativamente el coste computacional.
+
+El tercer experimento (Pipeline Híbrico Modular)  explora una arquitectura jerárquica aún más especializada. Tras la clasificación de la especie vegetal mediante MobileNet, se activan modelos de detección independientes entrenados específicamente para cada especie. Cada detector se enfoca únicamente en distinguir entre los distintos patógenos foliares asociados a una única planta hospedadora. Este diseño maximiza la especialización del modelo y minimiza la ambigüedad inter-especie.
+
+\subsection{Resultados}
+
+Los resultados obtenidos de los tres enfoques experimentales se resumen en la Tabla \ref{tab:resultados_resumen}.
+
+Los datos evidencian que la falta de contexto biológico penaliza severamente al modelo \textit{Baseline}, especialmente en las clases Rosas (0.56 mAP50) y Manzanas (0.6356 mAP50). Esto sugiere que el modelo monolítico sufre de ``alucinaciones cruzadas'', confundiendo texturas de enfermedades similares entre especies distintas.
+
+La incorporación de la etapa de clasificación en los enfoques jerárquicos genera una mejora sustancial:
+\textbf{Análisis detallado por especie (mAP@50 y mAP@50-95):}
+
+\begin{itemize}
+    \item Rosas  Esta clase ilustra el mayor beneficio del enfoque jerárquico. El \textit{Baseline} no solo fallaba en la detección (mAP@50 de 0.5640), sino que su precisión de localización era deficiente (mAP@50-95 de 0.2966). La implementación del pipeline disparó la detección por encima del 0.92 y, crucialmente, el modelo Especializado duplicó la calidad de la localización (0.6509), demostrando que los expertos aprenden mejor la morfología compleja de la hoja de rosa.
+    
+    \item Manzanas Se observa una correlación directa entre la eliminación de la ambigüedad y la precisión geométrica. El mAP@50 saltó del 0.6356 al 0.9378 en el enfoque Unificado, arrastrando consigo una mejora sustancial en el mAP@50-95 (de 0.4981 a 0.7110). Esto indica que el modelo condicionado no solo encuentra más enfermedades, sino que delimita sus bordes con mucha mayor exactitud.
+    
+    \item Patatas  Aunque la detección general (mAP@50) se mantuvo estable en torno a 0.79 en todos los enfoques —sugiriendo una robustez visual inherente al tizón—, el mAP@50-95 revela una ventaja oculta del \textit{Pipeline Especializado}. Este enfoque alcanzó un 0.6610 frente al 0.6296 del \textit{Baseline}, confirmando que un modelo dedicado exclusivamente a la patata logra ajustar mejor las cajas delimitadoras (bounding boxes) que uno generalista.
+    
+   
+\end{itemize}
+\begin{table}[ht]
+\centering
+\caption{Comparativa de rendimiento (mAP@50 y mAP@50-95).}
+\label{tab:resultados_resumen}
+
+
+\scalebox{0.75}{ 
+    \begin{tabular}{lcccccc}
+    \toprule
+     & \multicolumn{2}{c}{\textbf{Baseline}} & \multicolumn{2}{c}{\textbf{Unificado}} & \multicolumn{2}{c}{\textbf{Especializado}} \\
+    \textbf{Especie} & \textbf{mAP50} & \textbf{50-95} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{50-95} \\
+    \midrule
+    Manzana & 0.6356 & 0.4981 & 0.9378 & 0.7110 & 0.9275 & 0.7145 \\
+    Patatas & 0.7965 & 0.6296 & 0.7965 & 0.6296 & 0.8239 & 0.6610 \\
+    Rosas   & 0.5640 & 0.2966 & 0.9248 & 0.5354 & 0.9574 & 0.6509 \\
+    \midrule
+    \textbf{Avg} & \textbf{0.6654} & \textbf{0.4748} & \textbf{0.8864} & \textbf{0.6253} & \textbf{0.9029} & \textbf{0.6755} \\
+    \bottomrule
+    \end{tabular}%
+}
+\end{table}
+
 
 \section{Conclusiones}
 
