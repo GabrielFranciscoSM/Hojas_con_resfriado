@@ -67,12 +67,12 @@
 %%%%%%%%% CUERPO DEL TEXTO
 \section{Introducción}
 \label{sec:intro}
-Las enfermedades de las plantas representan una amenaza significativa para la seguridad alimentaria mundial y la estabilidad económica agrícola, causando pérdidas estimadas de hasta el 40\% en el rendimiento de los cultivos cada año [CITA]. 
+Las enfermedades de las plantas representan una amenaza significativa para la seguridad alimentaria mundial y la estabilidad económica agrícola, causando pérdidas estimadas de hasta el 30\% en el rendimiento de los cultivos cada año \cite{savary2019global}. 
 La identificación temprana y precisa de estas patologías es crucial para aplicar medidas de control eficaces y minimizar el uso de químicos. 
-Tradicionalmente, este diagnóstico ha dependido de la inspección visual manual por parte de expertos, un proceso que resulta laborioso, subjetivo y difícil de escalar a grandes explotaciones [CITA].
+Tradicionalmente, este diagnóstico ha dependido de la inspección visual manual por parte de expertos, un proceso que resulta laborioso, subjetivo y difícil de escalar a grandes explotaciones \cite{barbedo2013digital}.
 
 En la última década, la visión por computador y, específicamente, el aprendizaje profundo, han emergido como herramientas poderosas para automatizar esta tarea. 
-El uso de Redes Neuronales Convolucionales (CNNs) ha permitido grandes avances tanto en la clasificación de imágenes (identificar si una hoja está enferma) como en la detección de objetos (localizar la lesión exacta en la hoja) [CITA]. 
+El uso de Redes Neuronales Convolucionales (CNNs) ha permitido grandes avances tanto en la clasificación de imágenes (identificar si una hoja está enferma) como en la detección de objetos (localizar la lesión exacta en la hoja) \cite{mohanty2016using}. 
 Sin embargo, la mayoría de las arquitecturas actuales abordan la detección de enfermedades como un problema monolítico donde los modelos se entrenan para detectar cualquier enfermedad en cualquier tipo de hoja simultáneamente, ignorando a menudo la estructura jerárquica natural de la taxonomía biológica.
 
 Debido a que muchas patologías foliares comparten características visuales similares, independientemente de la especie, los detectores agnósticos al huésped sufren de una alta confusión inter-clase. 
@@ -101,43 +101,42 @@ Adicionalmente, dada la orientación práctica de este proyecto hacia una futura
 
 \subsection{MaxViT}
 
-Dentro de la familia de los Transformers, MaxViT (Multi-Axis Vision Transformer) combina tanto mecanismos de atención global como convoluciones locales para capturar características a múltiples escalas.
-Su característica distintiva es el mecanismo de Atención Multi-Eje, que descompone el cálculo de atención en dos pasos lineales: atención local (Block Attention) para capturar texturas finas, y atención global dispersa (Grid Attention) para relacionar partes distantes de la imagen. 
-Esto lo convierte en un candidato ideal para capturar la complejidad visual de las enfermedades vegetales.
+Dentro de la familia de los Transformers, MaxViT (Multi-Axis Vision Transformer) combina tanto mecanismos de atención global como convoluciones locales para capturar características a múltiples escalas \cite{tu2022maxvit}.
+Su característica distintiva es el mecanismo de \textit{Multi-Axis Self-Attention} (Max-SA), que descompone el cálculo de atención en dos operaciones: atención local (\textit{Block Attention}) para capturar texturas finas, y atención global dispersa (\textit{Grid Attention}) para relacionar partes distantes de la imagen.
 
-\subsection{EfficientNetV2}
+\subsubsection{EfficientNetV2}
 
-Como representante de las CNNs modernas, optamos por EfficientNetV2. Esta arquitectura mejora a su predecesora mediante la introducción de bloques Fused-MBConv.
-Al sustituir ciertas convoluciones depthwise por convoluciones estándar 1$3 \times 3$ en las primeras capas y aplicar un "escalado compuesto" inteligente, EfficientNetV2 logra una velocidad de entrenamiento y una precisión superiores, posicionándose como una opción robusta para la clasificación taxonómica de las especies.23. 
+Esta arquitectura mejora a su predecesora mediante la introducción de bloques Fused-MBConv \cite{tan2021efficientnetv2}.
+Estos bloques reemplazan las convoluciones \textit{depthwise} separables tradicionales por convoluciones estándar $3 \times 3$ fusionadas en las primeras capas.
 
 \subsection{MobileNet}
 
-Considerando la viabilidad de despliegue en dispositivos móviles (edge computing), evaluamos la familia MobileNet.
-La base de su eficiencia radica en las Convoluciones Depthwise Separables, que factorizan la operación de convolución estándar en dos capas más ligeras (profundidad y punto a punto), reduciendo drásticamente la cantidad de parámetros y operaciones (FLOPs). 
-Aunque su capacidad de representación es menor que los modelos anteriores, su inclusión es crítica para evaluar el compromiso (trade-off) entre precisión y latencia en una aplicación real para agricultores.
-
-
+La base de su eficiencia radica en las convoluciones \textit{depthwise} separables, que factorizan la operación de convolución estándar en dos capas más ligeras (profundidad y punto a punto), reduciendo drásticamente la cantidad de parámetros y operaciones \cite{howard2017mobilenets}. 
+Aunque su capacidad de representación es menor que los modelos anteriores, su inclusión es crítica para evaluar el compromiso (\textit{trade-off}) entre precisión y latencia en una aplicación real para agricultores.
 
 \section{Detección de Objetos}
 
-El objetivo fundamental en detección de objetos es localizar ("Bounding Boxes") y clasificar regiones de interés. La aproximación inicial, "Sliding Window", resulta inviable computacionalmente al procesar todas las sub-ventanas posibles.
+El objetivo fundamental en detección de objetos es localizar y clasificar regiones de interés (\textit{bounding boxes}). 
+Históricamente, métodos dominantes como \textit{Deformable Parts Model} (DPM) abordaban este problema mediante un enfoque de ventana deslizante (\textit{sliding window}) que resultaban inviables computacionalmente al procesar todas las posibles sub-ventanas \cite{felzenszwalb2010dpm}.
 
-Como solución surgió \textbf{R-CNN}, un modelo de 3 etapas: 1) Búsqueda selectiva para recortar regiones probables (priorizando el Recall), 2) Extracción de características por región (CNN) y 3) Clasificación (SVM). Sus limitaciones principales son el alto coste de procesar regiones por separado y la falta de aprendizaje en la búsqueda selectiva. Posteriormente, \textbf{Fast R-CNN} mejoró la eficiencia aplicando una sola CNN a la imagen completa para obtener un \textit{feature map}, aunque seguía dependiendo de un algoritmo externo y fijo para la propuesta de regiones.
+La evolución comenzó con \textbf{R-CNN}, un modelo de 3 etapas donde una búsqueda selectiva genera regiones potencialmente interesantes, una CNN extrae características y un SVM las clasifica \cite{girshick2014rcnn}. 
+Sus limitaciones principales son el alto coste de procesar regiones por separado y la falta de aprendizaje en la búsqueda selectiva. 
 
 \subsection{Faster R-CNN}
 
-\textbf{Faster R-CNN} integra la propuesta de regiones dentro de la red neuronal, reemplazando el algoritmo fijo por una \textit{Region Proposal Network} (RPN) entrenable y más rápida. Su funcionamiento general es:
+Faster R-CNN integra la propuesta de regiones dentro de la red neuronal, reemplazando el algoritmo fijo por una \textit{Region Proposal Network} (RPN) entrenable y más rápida \cite{ren2016fasterrcnn}. 
 
-\begin{itemize}
-   \item Se definen "Anchor points" sobre el \textit{feature map} de la imagen, actuando como centros de posibles regiones con diferentes escalas y ratios.
-   \item La RPN procesa estos puntos y, mediante capas con kernels 1x1, predice simultáneamente: \textbf{Scores} (probabilidad de objeto vs background) y \textbf{Coordenadas } (coords de 2 esquinas opuestas del Bounding Box, ajustandolo respecto a la estimación del anchor point).
-\end{itemize}
+En primer lugar se definen \textit{anchor points} sobre el mapa de características de la imagen, actuando como centros de posibles regiones con diferentes escalas y ratios. Seguidamente, la RPN predice simultáneamente la probabilidad de objeto y las coordenadas del \textit{bounding box}.
 
-Cabe destacar que la familia R-CNN corresponde a detectores de \textbf{dos etapas} (propuesta de región seguida de clasificación), lo que implica "mirar la imagen dos veces". La siguiente sección abordará arquitecturas de una sola etapa, diseñadas para mayor velocidad.
+A pesar de su alta precisión, el hecho de ser un modelo de dos etapas penaliza su velocidad de inferencia.
 \subsection{YOLO}
 
+Como respuesta a la latencia, \textit{You Only Look Once} (YOLO) redefinió la detección no como una clasificación de regiones, sino como un problema único de regresión, descartando por completo el pipeline disjunto de DPM y R-CNN.
 
+YOLO utiliza una única red neuronal convolucional que procesa la imagen completa de una sola vez.
+Divide la imagen en una cuadrícula ($S \times S$) donde cada celda predice $B$ bounding boxes y sus respectivas puntuaciones de confianza.
 
+La arquitectura unificada de YOLO permite una inferencia en tiempo real inalcanzable para los métodos de dos etapas \cite{redmon2016yolo}. Mientras que Faster R-CNN procesa aproximadamente 0.5 FPS, YOLO alcanza los 45 FPS, ofreciendo la inmediatez necesaria para aplicaciones agrícolas prácticas.
 \section{Métodos}
 
 Descripción detallada de los métodos utilizados y/o propuestos, y justificación clara de por qué se usan estos métodos y no otros.
