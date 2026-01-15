@@ -140,6 +140,12 @@ Divide la imagen en una cuadrícula ($S \times S$) donde cada celda predice $B$ 
 
 La arquitectura unificada de YOLO permite una inferencia en tiempo real inalcanzable para los métodos de dos etapas \cite{redmon2016yolo}. Mientras que Faster R-CNN procesa aproximadamente 0.5 FPS, YOLO alcanza los 45 FPS, ofreciendo la inmediatez necesaria para aplicaciones agrícolas prácticas.
 \section{Métodos}
+\label{sec:metodos}
+
+En esta sección se detalla la propuesta arquitectónica diseñada para la detección de patologías foliares. El sistema se fundamenta en un enfoque jerárquico de dos etapas, compuesto secuencialmente por un módulo de clasificación taxonómica (especie vegetal) y un módulo de detección de objetos (patógeno y localización dentro de la imagen).
+
+
+\subsection{Arquitectura del Pipeline Propuesto}
 
 \begin{figure*}[t] % El asterisco hace que ocupe el ancho de las dos columnas
 \centering
@@ -195,7 +201,44 @@ La arquitectura unificada de YOLO permite una inferencia en tiempo real inalcanz
 \label{fig:pipeline}
 \end{figure*}
 
-Descripción detallada de los métodos utilizados y/o propuestos, y justificación clara de por qué se usan estos métodos y no otros.
+Para evaluar la eficacia del condicionamiento biológico en la detección de enfermedades, se implementaron y compararon tres variantes arquitectónicas del pipeline. Todas comparten la etapa inicial de clasificación, pero difieren en la estrategia de detección posterior:
+
+\begin{itemize}
+    \item \textbf{V1: Arquitectura de Expertos Especializados (Ramificada).} En este esquema, la predicción del clasificador actúa como un enrutador (\textit{router}). Dependiendo de la especie predicha, la imagen se deriva a uno de los tres detectores YOLO independientes, cada uno entrenado exclusivamente con el subconjunto de datos de dicha especie (Rosa, Patata o Manzana). Esto elimina la confusión inter-clase de especies a nivel de detector.
+    
+    \item \textbf{V2: Arquitectura Secuencial Global (Baseline).} El clasificador identifica la especie para aportar contexto, pero la detección se realiza mediante un único modelo YOLO global entrenado con el dataset completo (todas las clases de patógenos y especies simultáneamente). Este enfoque evalúa si la especialización (modelo V1) es realmente necesaria frente a un detector robusto generalista (modelo V2).
+    
+    \item \textbf{V3: Arquitectura Global Condicionada.} Una variante híbrida donde se utiliza un único detector global, pero la salida del clasificador se utiliza para filtrar o condicionar las predicciones del detector (e.g., penalizando la confianza de patógenos incompatibles con la especie detectada).
+\end{itemize}
+
+\subsection{Selección del Clasificador: MobileNet}
+
+De los modelos evaluados en la fase preliminar (MaxViT, EfficientNetV2 y MobileNet), se seleccionó \textbf{MobileNet} \cite{howard2017mobilenets} como el extractor de características para la primera etapa.
+
+Esta decisión se justifica por el \textit{trade-off} entre precisión y coste computacional. Los experimentos mostraron que, dada la baja cardinalidad del problema de clasificación (únicamente 3 clases: rosa, patata, manzana), modelos de alta capacidad como MaxViT no aportaban una ganancia significativa de precisión (saturación de rendimiento), mientras que introducían una latencia considerable. MobileNet, gracias a sus convoluciones separables en profundidad (\textit{depthwise separable convolutions}), ofrece un rendimiento competitivo con una fracción de los parámetros, alineándose con el objetivo de despliegue en dispositivos móviles.
+
+
+\subsection{Selección del Detector: YOLOv8}
+
+Para la etapa de localización de patógenos, se realizó una comparativa entre detectores de dos etapas (\textbf{Faster R-CNN}) y de una etapa (\textbf{YOLO}). Finalmente, se optó por la arquitectura \textbf{YOLOv8}, específicamente la variante \textit{small} (YOLOv8s).
+
+La elección se fundamenta en dos factores críticos observados durante la experimentación:
+
+\begin{enumerate}
+    \item \textbf{Generalización y Convergencia:} Faster R-CNN mostró una tendencia al sobreajuste (\textit{overfitting}) temprano con nuestro dataset, degradando su rendimiento en el conjunto de test en comparación con YOLO bajo el mismo número de épocas de entrenamiento.
+    \item \textbf{Eficiencia de Inferencia:} Como se discutió en la introducción, la aplicabilidad en campo requiere tiempos de respuesta rápidos. YOLOv8s, al ser un detector \textit{single-stage} libre de la red de propuesta de regiones (RPN), demostró una velocidad de inferencia (FPS) muy superior, esencial para la experiencia de usuario en tiempo real.
+\end{enumerate}
+
+Finalmente, la elección de la arquitectura se acotó a dos candidatos (si bien en las pruebas se consideraron hasta 8 versiones distintas de YOLO): \textbf{YOLOv8s} y la reciente versión \textbf{YOLO11s}. Aunque ambos modelos mostraron un desempeño sobresaliente, la balanza se inclinó a favor de YOLOv8s por dos razones fundamentales:
+
+\begin{enumerate}
+    \item \textbf{Consistencia en la precisión:} YOLOv8s demostró una mayor robustez inter-dominio. Superó a YOLO11s en el dataset de rosas con un margen de $+1.5\%$ de mAP y mantuvo un empate técnico en patatas, mientras que la ventaja de YOLO11s en manzanas fue marginal ($<0.3\%$), no compensando su inestabilidad en otros escenarios.
+    
+    \item \textbf{Eficiencia computacional:} Se observó un patrón constante de mayor eficiencia en la versión 8. YOLOv8s no solo requirió menores tiempos de entrenamiento para converger (e.g., $14.1$ min vs $16.8$ min en rosas), sino que, críticamente, ofreció una latencia de inferencia menor ($2.66$ img/s frente a $2.50$ img/s de la v11s). Esta ganancia del $6.4\%$ en velocidad es determinante para el despliegue en tiempo real propuesto.
+\end{enumerate}
+
+En consecuencia, se selecciona \textbf{YOLOv8s} como el detector final, al ofrecer el mejor equilibrio entre estabilidad predictiva y agilidad de procesamiento.
+
 
 \section{Experimentos}
 
@@ -212,6 +255,27 @@ El primer  experimento (Baseline Monolitico) consiste en entrenar un único mode
 El segundo experimento (Pipeline Híbrido Unificado)  implementa un enfoque jerárquico en dos etapas. En la primera etapa, se entrenó un modelo de clasificación de imágenes basado en MobileNet para identificar la especie del árbol (rosa, patata o manzana), alcanzando una exactitud del 99.84\%. En la segunda etapa, la predicción de la especie actúa como un mecanismo de condicionamiento lógico (masking) sobre un único detector YOLOv8, restringiendo el espacio de búsqueda exclusivamente a las enfermedades biológicamente plausibles para la especie identificada. Este enfoque permite reducir drásticamente las confusiones entre especies sin incrementar significativamente el coste computacional.
 
 El tercer experimento (Pipeline Híbrico Modular)  explora una arquitectura jerárquica aún más especializada. Tras la clasificación de la especie vegetal mediante MobileNet, se activan modelos de detección independientes entrenados específicamente para cada especie. Cada detector se enfoca únicamente en distinguir entre los distintos patógenos foliares asociados a una única planta hospedadora. Este diseño maximiza la especialización del modelo y minimiza la ambigüedad inter-especie.
+
+
+\begin{table*}[!t]
+\centering
+\caption{Comparativa de rendimiento (mAP@50 y mAP@50-95).}
+\label{tab:resultados_resumen}
+\scalebox{1}{ 
+    \begin{tabular}{lcccccc}
+    \toprule
+     & \multicolumn{2}{c}{\textbf{Baseline}} & \multicolumn{2}{c}{\textbf{Unificado}} & \multicolumn{2}{c}{\textbf{Especializado}} \\
+    \textbf{Especie} & \textbf{mAP50} & \textbf{50-95} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{50-95} \\
+    \midrule
+    Manzana & 0.6356 & 0.4981 & 0.9378 & 0.7110 & 0.9275 & 0.7145 \\
+    Patatas & 0.7965 & 0.6296 & 0.7965 & 0.6296 & 0.8239 & 0.6610 \\
+    Rosas   & 0.5640 & 0.2966 & 0.9248 & 0.5354 & 0.9574 & 0.6509 \\
+    \midrule
+    \textbf{Avg} & \textbf{0.6654} & \textbf{0.4748} & \textbf{0.8864} & \textbf{0.6253} & \textbf{0.9029} & \textbf{0.6755} \\
+    \bottomrule
+    \end{tabular}%
+}
+\end{table*}
 
 \subsection{Resultados}
 
@@ -231,27 +295,6 @@ La incorporación de la etapa de clasificación en los enfoques jerárquicos gen
     
    
 \end{itemize}
-\begin{table}[ht]
-\centering
-\caption{Comparativa de rendimiento (mAP@50 y mAP@50-95).}
-\label{tab:resultados_resumen}
-
-
-\scalebox{0.75}{ 
-    \begin{tabular}{lcccccc}
-    \toprule
-     & \multicolumn{2}{c}{\textbf{Baseline}} & \multicolumn{2}{c}{\textbf{Unificado}} & \multicolumn{2}{c}{\textbf{Especializado}} \\
-    \textbf{Especie} & \textbf{mAP50} & \textbf{50-95} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{50-95} \\
-    \midrule
-    Manzana & 0.6356 & 0.4981 & 0.9378 & 0.7110 & 0.9275 & 0.7145 \\
-    Patatas & 0.7965 & 0.6296 & 0.7965 & 0.6296 & 0.8239 & 0.6610 \\
-    Rosas   & 0.5640 & 0.2966 & 0.9248 & 0.5354 & 0.9574 & 0.6509 \\
-    \midrule
-    \textbf{Avg} & \textbf{0.6654} & \textbf{0.4748} & \textbf{0.8864} & \textbf{0.6253} & \textbf{0.9029} & \textbf{0.6755} \\
-    \bottomrule
-    \end{tabular}%
-}
-\end{table}
 
 
 \section{Conclusiones}
