@@ -69,7 +69,7 @@
 %%%%%%%%% CUERPO DEL TEXTO
 \section{Introducción}
 \label{sec:intro}
-Las enfermedades de las plantas representan una amenaza significativa para la seguridad alimentaria mundial y la estabilidad económica agrícola, causando pérdidas estimadas de hasta el 30\% en el rendimiento de los cultivos cada año \cite{savary2019global}. 
+Las enfermedades de las plantas representan una amenaza significativa para la seguridad alimentaria y la estabilidad económica agrícola, causando pérdidas estimadas de hasta el 30\% en el rendimiento de los cultivos cada año \cite{savary2019global}. 
 La identificación temprana y precisa de estas patologías es crucial para aplicar medidas de control eficaces y minimizar el uso de químicos. 
 Tradicionalmente, este diagnóstico ha dependido de la inspección visual manual por parte de expertos, un proceso que resulta laborioso, subjetivo y difícil de escalar a grandes explotaciones \cite{barbedo2013digital}.
 
@@ -82,41 +82,32 @@ Esto suele derivar en predicciones erróneas donde se asocian enfermedades a pla
 
 Para resolver esto, proponemos un enfoque jerárquico que imita el diagnóstico experto donde primero se identifica la especie del árbol para simplificar la búsqueda de la enfermedad y luego se aplica un detector especializado para esa especie.
 
-\section{Dataset}
+\section{Estado del Arte}
 
-Para validar nuestro enfoque jerárquico, hemos confeccionado un \textit{dataset} que integra imágenes de tres cultivos: rosa, patata y manzana. 
-Las imágenes provienen de la plataforma Roboflow Universe, que contiene una gran cantidad de \textit{datasets} de código abierto, y han sido seleccionadas por su calidad y variedad de condiciones de iluminación.
+\subsection{Clasificación}
 
-\begin{itemize}
-   \item Rose Dataset: Consta de 2,725 imágenes y abarca 4 clases (Black Spot, Downy Mildew, Powdery Mildew y hojas sanas).
-   \item Potato Dataset: Comprende 812 imágenes distribuidas en [X] clases (típicamente Early Blight, Late Blight, Healthy).
-   \item Apple Dataset: Incluye 1582 imágenes que cubren 4 patologías (Alternaria Spot, Brown Spot, Gray Spot, Rust).
-\end{itemize}
-
-El dataset combinado se dividió aleatoriamente en subconjuntos de Entrenamiento (70\%), Validación (15\%) y Prueba (15\%), preservando la estratificación de clases para garantizar una evaluación equilibrada.
-
-\section{Clasificación}
-
-Para el diseño del módulo de clasificación, hemos evaluado dos paradigmas principales del estado del arte, las arquitecturas basadas en Vision Transformers (ViT) y las Redes Neuronales Convolucionales (CNNs). 
+Los dos paradigmas principales en clasificación de imágenes son las arquitecturas basadas en Vision Transformers (ViT) y las Redes Neuronales Convolucionales (CNNs). 
 Nuestro objetivo fue contrastar la capacidad de modelado global de los Transformers frente a la eficiencia inductiva de las CNNs. 
-Adicionalmente, dada la orientación práctica de este proyecto hacia una futura aplicación móvil, se incluyó en el estudio un modelo diseñado específicamente para entornos de recursos limitados.
+Adicionalmente, dada la orientación práctica de este proyecto hacia una futura aplicación móvil, se incluyó en el estudio un modelo diseñado específicamente para entornos de recursos limitados (\textit{edge devices}).
 
-\subsection{MaxViT}
+\subsubsection{MaxViT}
 
-Dentro de la familia de los Transformers, MaxViT (Multi-Axis Vision Transformer) combina tanto mecanismos de atención global como convoluciones locales para capturar características a múltiples escalas \cite{tu2022maxvit}.
-Su característica distintiva es el mecanismo de \textit{Multi-Axis Self-Attention} (Max-SA), que descompone el cálculo de atención en dos operaciones: atención local (\textit{Block Attention}) para capturar texturas finas, y atención global dispersa (\textit{Grid Attention}) para relacionar partes distantes de la imagen.
+Dentro de la familia de los Transformers, MaxViT (\textit{Multi-Axis Vision Transformer}) combina tanto mecanismos de atención global como convoluciones locales para capturar características a múltiples escalas \cite{tu2022maxvit}.
+Su característica distintiva es el mecanismo de \textit{Multi-Axis Self-Attention} (Max-SA), que descompone el cálculo de atención en dos operaciones; atención local (\textit{Block Attention}) para capturar texturas finas, y atención global dispersa (\textit{Grid Attention}) para relacionar partes distantes de la imagen.
 
 \subsubsection{EfficientNetV2}
 
+EfficientNetV2 es una evolución de la familia de EfficientNet (CNN) que optimiza tanto la arquitectura como el proceso de entrenamiento para mejorar la velocidad y precisión \cite{tan2021efficientnetv2}.
 Esta arquitectura mejora a su predecesora mediante la introducción de bloques Fused-MBConv \cite{tan2021efficientnetv2}.
 Estos bloques reemplazan las convoluciones \textit{depthwise} separables tradicionales por convoluciones estándar $3 \times 3$ fusionadas en las primeras capas.
 
-\subsection{MobileNet}
+\subsubsection{MobileNet}
 
-La base de su eficiencia radica en las convoluciones \textit{depthwise} separables, que factorizan la operación de convolución estándar en dos capas más ligeras (profundidad y punto a punto), reduciendo drásticamente la cantidad de parámetros y operaciones \cite{howard2017mobilenets}. 
-Aunque su capacidad de representación es menor que los modelos anteriores, su inclusión es crítica para evaluar el compromiso (\textit{trade-off}) entre precisión y latencia en una aplicación real para agricultores.
+MobileNet es una arquitectura basada en CNN diseñada para dispositivos móviles y aplicaciones de \textit{edge computing} \cite{howard2017mobilenets}.
+La base de su eficiencia radica en las convoluciones \textit{depthwise} separables, que factorizan la operación de convolución estándar en dos capas más ligeras (de tamaños $3 \times 3$ y $1 \times 1$), reduciendo drásticamente la cantidad de parámetros y operaciones \cite{howard2017mobilenets}. 
+Aunque su capacidad de representación es menor que los modelos anteriores, su inclusión es crítica para evaluar el \textit{trade-off} entre precisión y latencia en una aplicación real para agricultores.
 
-\section{Detección de Objetos}
+\subsection{Detección de Objetos}
 
 El objetivo fundamental en detección de objetos es localizar y clasificar regiones de interés (\textit{bounding boxes}). 
 Históricamente, métodos dominantes como \textit{Deformable Parts Model} (DPM) abordaban este problema mediante un enfoque de ventana deslizante (\textit{sliding window}) que resultaban inviables computacionalmente al procesar todas las posibles sub-ventanas \cite{felzenszwalb2010dpm}.
@@ -124,14 +115,14 @@ Históricamente, métodos dominantes como \textit{Deformable Parts Model} (DPM) 
 La evolución comenzó con \textbf{R-CNN}, un modelo de 3 etapas donde una búsqueda selectiva genera regiones potencialmente interesantes, una CNN extrae características y un SVM las clasifica \cite{girshick2014rcnn}. 
 Sus limitaciones principales son el alto coste de procesar regiones por separado y la falta de aprendizaje en la búsqueda selectiva. 
 
-\subsection{Faster R-CNN}
+\subsubsection{Faster R-CNN}
 
 Faster R-CNN integra la propuesta de regiones dentro de la red neuronal, reemplazando el algoritmo fijo por una \textit{Region Proposal Network} (RPN) entrenable y más rápida \cite{ren2016fasterrcnn}. 
 
 En primer lugar se definen \textit{anchor points} sobre el mapa de características de la imagen, actuando como centros de posibles regiones con diferentes escalas y ratios. Seguidamente, la RPN predice simultáneamente la probabilidad de objeto y las coordenadas del \textit{bounding box}.
 
 A pesar de su alta precisión, el hecho de ser un modelo de dos etapas penaliza su velocidad de inferencia.
-\subsection{YOLO}
+\subsubsection{YOLO}
 
 Como respuesta a la latencia, \textit{You Only Look Once} (YOLO) redefinió la detección no como una clasificación de regiones, sino como un problema único de regresión, descartando por completo el pipeline disjunto de DPM y R-CNN.
 
@@ -139,14 +130,24 @@ YOLO utiliza una única red neuronal convolucional que procesa la imagen complet
 Divide la imagen en una cuadrícula ($S \times S$) donde cada celda predice $B$ bounding boxes y sus respectivas puntuaciones de confianza.
 
 La arquitectura unificada de YOLO permite una inferencia en tiempo real inalcanzable para los métodos de dos etapas \cite{redmon2016yolo}. Mientras que Faster R-CNN procesa aproximadamente 0.5 FPS, YOLO alcanza los 45 FPS, ofreciendo la inmediatez necesaria para aplicaciones agrícolas prácticas.
-\section{Métodos}
-\label{sec:metodos}
 
-En esta sección se detalla la propuesta arquitectónica diseñada para la detección de patologías foliares. El sistema se fundamenta en un enfoque jerárquico de dos etapas, compuesto secuencialmente por un módulo de clasificación taxonómica (especie vegetal) y un módulo de detección de objetos (patógeno y localización dentro de la imagen).
+\section{Métodología Propuesta}
 
+\subsection{Dataset}
 
-\subsection{Arquitectura del Pipeline Propuesto}
+Para validar nuestro enfoque jerárquico, hemos confeccionado un \textit{dataset} que integra imágenes de tres cultivos. 
+Las imágenes provienen de la plataforma Roboflow Universe, que contiene una gran cantidad de \textit{datasets} de código abierto, y han sido seleccionadas por su calidad y variedad de condiciones de iluminación.
 
+\begin{itemize}
+   \item Rose Dataset: Consta de 2,725 imágenes y abarca 4 clases (Black Spot, Downy Mildew, Powdery Mildew y Healthy).
+   \item Potato Dataset: Comprende 812 imágenes distribuidas en 3 clases (Early Blight, Late Blight, Healthy).
+   \item Apple Dataset: Incluye 1582 imágenes que cubren 5 clases (Alternaria Spot, Brown Spot, Gray Spot, Rust, Healthy).
+\end{itemize}
+
+El dataset combinado se dividió aleatoriamente en subconjuntos de Entrenamiento (70\%), Validación (15\%) y Prueba (15\%), preservando la estratificación de clases para garantizar una evaluación equilibrada.
+
+El dataset de manzanas requirió un preprocesamiento adicional, ya que sus anotaciones originales estaban en formato de máscaras de segmentación semántica en lugar de coordenadas de bounding boxes. 
+Utilizando OpenCV (\texttt{cv2.findContours} y \texttt{cv2.boundingRect}), se convirtieron automáticamente las máscaras de las lesiones en \textit{bounding boxes}, generando las coordenadas necesarias para su integración en el flujo de trabajo de YOLO.
 \begin{figure*}[t] % El asterisco hace que ocupe el ancho de las dos columnas
 \centering
 \begin{tikzpicture}[
@@ -197,108 +198,173 @@ En esta sección se detalla la propuesta arquitectónica diseñada para la detec
 \end{scope}
 
 \end{tikzpicture}
-\caption{Visión general de la arquitectura jerárquica propuesta. Una imagen de entrada es procesada primero por una red MobileNetV3 para identificar el cultivo huésped (Etapa 1). En base a esta predicción, se selecciona dinámicamente un modelo de detección YOLOv8 especializado (Etapa 2) para localizar y clasificar las patologías foliares correspondientes, evitando la confusión inter-especie.}
+\caption{Arquitectura del Pipeline Especializado}
 \label{fig:pipeline}
 \end{figure*}
 
-Para evaluar la eficacia del condicionamiento biológico en la detección de enfermedades, se implementaron y compararon tres variantes arquitectónicas del pipeline. Todas comparten la etapa inicial de clasificación, pero difieren en la estrategia de detección posterior:
+\subsection{Arquitecturas}
+
+Para evaluar la eficacia del enfoque jerárquico propuesto, se implementaron y compararon tres variantes arquitectónicas del pipeline de detección. Todas comparten la etapa inicial de clasificación de especies mediante MobileNet, pero difieren en la estrategia de especialización durante la detección:
 
 \begin{itemize}
-    \item \textbf{V1: Arquitectura de Expertos Especializados (Ramificada).} En este esquema, la predicción del clasificador actúa como un enrutador (\textit{router}). Dependiendo de la especie predicha, la imagen se deriva a uno de los tres detectores YOLO independientes, cada uno entrenado exclusivamente con el subconjunto de datos de dicha especie (Rosa, Patata o Manzana). Esto elimina la confusión inter-clase de especies a nivel de detector.
+    \item \textbf{Pipeline Especializado} La predicción del clasificador actúa como un enrutador dinámico. 
+    Como se ilustra en la Figura \ref{fig:pipeline}, dependiendo de la especie identificada, la imagen se procesa con un detector YOLOv8 independiente entrenado exclusivamente con el subconjunto de datos correspondiente (Rosa, Patata o Manzana). Esto maximiza la especialización del modelo y elimina la confusión inter-especie a nivel de detector, alineándose con el diagnóstico experto donde cada patología se evalúa en su contexto biológico específico.
     
-    \item \textbf{V2: Arquitectura Secuencial Global (Baseline).} El clasificador identifica la especie para aportar contexto, pero la detección se realiza mediante un único modelo YOLO global entrenado con el dataset completo (todas las clases de patógenos y especies simultáneamente). Este enfoque evalúa si la especialización (modelo V1) es realmente necesaria frente a un detector robusto generalista (modelo V2).
+    \item \textbf{Pipeline Unificado}
+    El clasificador identifica la especie, pero la detección se realiza mediante un único modelo YOLOv8 global entrenado con el dataset combinado de todas las especies y patógenos (Figura \ref{fig:pipeline_single}).
+    Sin embargo, la predicción del clasificador se utiliza como mecanismo de \textit{masking} lógico, restringiendo el espacio de búsqueda exclusivamente a las enfermedades biológicamente plausibles para la especie detectada. Este enfoque evalúa si el condicionamiento post-procesado es suficiente para reducir la ambigüedad sin incrementar el coste computacional de múltiples detectores.
     
-    \item \textbf{V3: Arquitectura Global Condicionada.} Una variante híbrida donde se utiliza un único detector global, pero la salida del clasificador se utiliza para filtrar o condicionar las predicciones del detector (e.g., penalizando la confianza de patógenos incompatibles con la especie detectada).
+    \item \textbf{Monolítico} Un único detector YOLOv8 global entrenado sin información de especie, procesando todas las clases de patógenos simultáneamente en un enfoque completamente agnóstico al huésped. Esta configuración sirve como línea base para cuantificar el impacto de la información contextual biológica en la precisión y la generalización.
 \end{itemize}
-
-\subsection{Selección del Clasificador: MobileNet}
-
-De los modelos evaluados en la fase preliminar (MaxViT, EfficientNetV2 y MobileNet), se seleccionó \textbf{MobileNet} \cite{howard2017mobilenets} como el extractor de características para la primera etapa.
-
-Esta decisión se justifica por el \textit{trade-off} entre precisión y coste computacional. Los experimentos mostraron que, dada la baja cardinalidad del problema de clasificación (únicamente 3 clases: rosa, patata, manzana), modelos de alta capacidad como MaxViT no aportaban una ganancia significativa de precisión (saturación de rendimiento), mientras que introducían una latencia considerable. MobileNet, gracias a sus convoluciones separables en profundidad (\textit{depthwise separable convolutions}), ofrece un rendimiento competitivo con una fracción de los parámetros, alineándose con el objetivo de despliegue en dispositivos móviles.
-
-
-\subsection{Selección del Detector: YOLOv8}
-
-Para la etapa de localización de patógenos, se realizó una comparativa entre detectores de dos etapas (\textbf{Faster R-CNN}) y de una etapa (\textbf{YOLO}). Finalmente, se optó por la arquitectura \textbf{YOLOv8}, específicamente la variante \textit{small} (YOLOv8s).
-
-La elección se fundamenta en dos factores críticos observados durante la experimentación:
-
-\begin{enumerate}
-    \item \textbf{Generalización y Convergencia:} Faster R-CNN mostró una tendencia al sobreajuste (\textit{overfitting}) temprano con nuestro dataset, degradando su rendimiento en el conjunto de test en comparación con YOLO bajo el mismo número de épocas de entrenamiento.
-    \item \textbf{Eficiencia de Inferencia:} Como se discutió en la introducción, la aplicabilidad en campo requiere tiempos de respuesta rápidos. YOLOv8s, al ser un detector \textit{single-stage} libre de la red de propuesta de regiones (RPN), demostró una velocidad de inferencia (FPS) muy superior, esencial para la experiencia de usuario en tiempo real.
-\end{enumerate}
-
-Finalmente, la elección de la arquitectura se acotó a dos candidatos (si bien en las pruebas se consideraron hasta 8 versiones distintas de YOLO): \textbf{YOLOv8s} y la reciente versión \textbf{YOLO11s}. Aunque ambos modelos mostraron un desempeño sobresaliente, la balanza se inclinó a favor de YOLOv8s por dos razones fundamentales:
-
-\begin{enumerate}
-    \item \textbf{Consistencia en la precisión:} YOLOv8s demostró una mayor robustez inter-dominio. Superó a YOLO11s en el dataset de rosas con un margen de $+1.5\%$ de mAP y mantuvo un empate técnico en patatas, mientras que la ventaja de YOLO11s en manzanas fue marginal ($<0.3\%$), no compensando su inestabilidad en otros escenarios.
-    
-    \item \textbf{Eficiencia computacional:} Se observó un patrón constante de mayor eficiencia en la versión 8. YOLOv8s no solo requirió menores tiempos de entrenamiento para converger (e.g., $14.1$ min vs $16.8$ min en rosas), sino que, críticamente, ofreció una latencia de inferencia menor ($2.66$ img/s frente a $2.50$ img/s de la v11s). Esta ganancia del $6.4\%$ en velocidad es determinante para el despliegue en tiempo real propuesto.
-\end{enumerate}
-
-En consecuencia, se selecciona \textbf{YOLOv8s} como el detector final, al ofrecer el mejor equilibrio entre estabilidad predictiva y agilidad de procesamiento.
-
 
 \section{Experimentos}
 
-Para la elección del mejor metodo para detección y clasificación de patógenos foliares, se ha utilizado el conjunto de datos Global Plant Dataset, un corpus heterogéneo , compuesto por los anteriores datsets mencionados , con ellos se han realizado diversos experimentos. A continuación se describen los experimentos realizados y los resultados obtenidos.\\
+\subsection{Selección de Modelos}
+
+La definición de la arquitectura final se fundamentó en un análisis exhaustivo del compromiso entre precisión predictiva y coste computacional, priorizando la viabilidad del despliegue en dispositivos móviles. 
+
+\subsubsection{Clasificación}
+
+Para la etapa de clasificación de especies se seleccionó \textbf{MobileNet} \cite{howard2017mobilenets} tras compararlo con modelos de mayor densidad como MaxViT y EfficientNetV2. 
+Los experimentos preliminares revelaron que, dada la baja cardinalidad del problema de clasificación (limitado a tres clases), los modelos de alta capacidad sufrían una saturación de rendimiento, no aportando ganancias significativas de precisión que justificaran la latencia adicional introducida. 
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.45\textwidth]{resources/classification.png}
+    \caption{Comparativa de precisión entre modelos de clasificación.}
+    \label{fig:classification_comparison}
+\end{figure}
+
+Como se observa en las Figuras \ref{fig:classification_comparison} y \ref{fig:inference_time_classification}, MobileNet demostró ofrecer un rendimiento competitivo con una fracción de los parámetros y, crucialmente, una latencia de inferencia significativamente menor que los otros, alineándose con los requisitos de eficiencia del sistema y viabilidad del despliegue en dispositivos móviles.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.4\textwidth]{resources/classification_inftime.png}
+    \caption{Comparativa de latencia de inferencia entre modelos de clasificación.}
+    \label{fig:inference_time_classification}
+\end{figure}
+
+\subsubsection{Detección de Objetos}
+Para la etapa de localización de patógenos, el estudio comparativo descartó inicialmente los detectores de dos etapas como \textbf{Faster R-CNN}. 
+A pesar de su teórica precisión, esta arquitectura mostró una tendencia temprana al sobreajuste y una velocidad de inferencia insuficiente para la experiencia de usuario en tiempo real, debido a la sobrecarga computacional de RPN. Por consiguiente, se optó por el paradigma de una sola etapa, acotando la selección final a las variantes \textit{small} de \textbf{YOLOv8} y la reciente \textbf{YOLO11}.
+
+\begin{table}[ht]
+\centering
+
+\scalebox{0.9}{
+    \begin{tabular}{lccc}
+    \toprule
+    \textbf{Modelo} & \textbf{Params (M)} & \textbf{mAP@50} & \textbf{mAP@50-95} \\
+    \midrule
+    \textbf{YOLOv8s}   & 11.2 & \textbf{0.8741} & \textbf{0.5899} \\
+    YOLOv11s           & 9.4  & 0.8709          & 0.5856          \\
+    YOLOv11n           & \textbf{2.6}  & 0.8652          & 0.5815          \\
+    YOLOv8n            & 8.7  & 0.8649          & 0.5797          \\
+    YOLOv5s            & 9.1  & 0.8691          & 0.5792          \\
+    YOLOv5n            & \textbf{2.6}  & 0.8655          & 0.5775          \\
+    YOLOv3-tiny        & 8.7  & 0.8365          & 0.5043          \\
+    Faster R-CNN       & $>40$* & 0.7473          & 0.4321          \\
+    \bottomrule
+    \end{tabular}
+}
+\caption{Comparativa de eficiencia (Parámetros) y precisión promedio (mAP) incluyendo Faster R-CNN.}
+\label{tab:promedio_modelos_simple}
+\end{table}
+
+Aunque ambas versiones de YOLO mostraron un desempeño sobresaliente, la balanza se inclinó finalmente a favor de \textbf{YOLOv8s} por su superior estabilidad y eficiencia.
+En términos de robustez inter-dominio, la versión 8 ofreció una mayor consistencia, superando a la v11 en el dataset de rosas (+1.5\% mAP) y manteniendo un empate técnico en patatas, mientras que las mejoras de la v11 en manzanas fueron marginales y no compensaron su inestabilidad en otros escenarios. 
+Críticamente, YOLOv8s demostró ser computacionalmente más eficiente, requiriendo menores tiempos de convergencia durante el entrenamiento y ofreciendo una latencia de inferencia un 6.4\% menor (2.66 img/s frente a 2.50 img/s). 
+
+Esta combinación de estabilidad predictiva y agilidad de procesamiento consolidó a YOLOv8s como el detector idóneo para la arquitectura jerárquica propuesta.
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+    scale=0.82, transform shape,
+    node distance=1.5cm and 1.5cm, % Aumenté un poco la distancia horizontal para claridad
+    box/.style={draw, rectangle, rounded corners, minimum width=2.8cm, minimum height=1cm, text centered, align=center, font=\bfseries\small, fill=blue!10},
+    yolo/.style={draw, rectangle, rounded corners, minimum width=2.2cm, minimum height=1cm, text centered, align=center, font=\bfseries\small, fill=orange!15},
+    arrow/.style={-{Latex[length=3mm]}, thick},
+    label_text/.style={font=\small\itshape, align=center}
+]
+
+% --- Nodos Principales ---
+
+% 1. Entrada
+\node (input) [box, fill=gray!10] {Imagen de Entrada\\(Hoja)};
+
+% 2. Etapa 1: Clasificación
+\node (mobilenet) [box, right=of input] {MobileNetV3\\(Clasificación de Especie)};
+
+% 3. Etapa 2: Detección (Unificada)
+% Aquí sustituimos el switch y los 3 YOLOs por uno solo
+\node (yolo_unified) [yolo, right=of mobilenet] {YOLOv8\\(Detección General)};
+
+% 4. Salida
+\node (output) [box, fill=gray!10, right=of yolo_unified] {Salida:\\Bounding Boxes + Patógeno};
+
+% --- Conexiones ---
+
+% De Entrada a MobileNet
+\draw [arrow] (input) -- (mobilenet);
+
+% De MobileNet al YOLO único
+% La etiqueta indica que se pasa la información de la especie o el contexto
+\draw [arrow] (mobilenet) -- (yolo_unified) node[midway, above, label_text] {Clase};
+
+% Del YOLO a la Salida
+\draw [arrow] (yolo_unified) -- (output);
+
+% --- Recuadros de fondo (Etapas) ---
+\begin{scope}[on background layer]
+    % Etapa 1
+    \node [draw=black!30, dashed, fit=(mobilenet), inner sep=15pt, label=above:{\textbf{Etapa 1: Clasificación}}] {};
+    
+    % Etapa 2 (Ahora solo contiene el YOLO unificado)
+    \node [draw=black!30, dashed, fit=(yolo_unified), inner sep=15pt, label=above:{\textbf{Etapa 2: Detección}}] {};
+\end{scope}
+
+\end{tikzpicture}
+\caption{Arquitectura del Pipeline Unificado}
+\label{fig:pipeline_single}
+\end{figure*}
 
 \subsection{Configuración Experimental}
-Los experimentos fueron realizados utilizando el entorno de computación en la nube Google Colab, haciendo uso de aceleración por GPU (A100 o la T4) para el entrenamiento.\\
 
-Para la etapa de clasificación de imágenes (identificación de especies), se utilizó la arquitectura \textbf{MobileNetV3 Small} , inicializada con pesos pre-entrenados en ImageNet-1k. Se implementó una estrategia de entrenamiento en dos fases para adaptar el modelo sin degradar las características aprendidas previamente:
+La ejecución de los experimentos y el entrenamiento de los modelos se llevaron a cabo utilizando el entorno de computación de Google Colab, aprovechando la aceleración por hardware mediante GPUs NVIDIA A100.
 
-\begin{enumerate}
-    \item \textbf{Fase 1 (Entrenamiento de la Cabeza):} Se congelaron (\textit{freeze}) los pesos de la red troncal (\textit{backbone}) y se entrenó únicamente la capa de clasificación.
-    \begin{itemize}
-        \item \textbf{Duración:} 5 épocas.
-        \item \textbf{Optimizador:} AdamW con tasa de aprendizaje inicial de $1 \times 10^{-3}$.
-    \end{itemize}
-    
-    \item \textbf{Fase 2 (Ajuste Fino ):} Se descongelaron todos los parámetros del modelo para permitir la actualización de los pesos profundos.
-    \begin{itemize}
-        \item \textbf{Duración:} 10 épocas.
-        \item \textbf{Optimizador:} AdamW con una tasa de aprendizaje ultra-baja de $8 \times 10^{-6}$ para evitar el olvido catastrófico.
-    \end{itemize}
-\end{enumerate}
+Para la etapa inicial de clasificación de especies, se instanció la arquitectura \textbf{MobileNetV3 Small} con pesos pre-entrenados en ImageNet-1k, implementando una estrategia de aprendizaje progresivo en dos fases. 
 
-En ambas fases se utilizó la función de pérdida \textit{CrossEntropyLoss} y un planificador de tasa de aprendizaje (\textit{Scheduler}).\\  
+Inicialmente, se aplicó \textit{freezing} a la red troncal para entrenar exclusivamente la cabecera de clasificación durante 5 épocas, empleando el optimizador AdamW con una tasa de aprendizaje de $1 \times 10^{-3}$. 
+Posteriormente, se procedió al \textit{unfreezing} de los parámetros para una fase de \textit{fine-tuning} durante 10 épocas, donde el \textit{learning rate} se redujo a $8 \times 10^{-6}$. 
 
-Para la etapa de detección de objetos, se seleccionó la arquitectura \textbf{YOLOv8 en su versión Small (YOLOv8s)}. Se partió de pesos pre-entrenados en el dataset COCO para aprovechar la transferencia de aprendizaje (\textit{transfer learning}), permitiendo al modelo converger más rápido hacia las características específicas de las patologías vegetales.
+En lo referente a la etapa de detección, la configuración del modelo \textbf{YOLOv8s} también se fundamentó en \textit{transfer learning} desde el dataset COCO. 
+El entrenamiento se estandarizó con una resolución de entrada de $640 \times 640$ píxeles y un \textit{batch size} de 16, extendiéndose a lo largo de 30 épocas completas.
+Este proceso mantuvo las configuraciones de optimización predeterminadas del framework Ultralytics \cite{jocher2023ultralytics} e integró técnicas de \textit{data augmentation} en tiempo de ejecución, destacando el uso de \textit{mosaic augmentation}, para incrementar la variabilidad de las muestras y mejorar la capacidad de generalización del modelo.
 
-La configuración de hiperparámetros para el entrenamiento (\textit{fine-tuning}) fue la siguiente:
-\begin{itemize}
-    \item \textbf{Resolución de entrada:} $640 \times 640$ píxeles.
-    \item \textbf{Tamaño de lote (Batch size):} 16.
-    \item \textbf{Ciclos de entrenamiento (Épocas):} 30.
-\end{itemize}
+\subsection{Métricas de Evaluación}
 
-El entrenamiento utilizó la función de pérdida y el optimizador por defecto de la librería Ultralytics, aplicando técnicas de aumento de datos online (como \textit{Mosaic augmentation}) inherentes al framework para mejorar la capacidad de generalización del modelo.
+En tareas de detección de objetos, la métrica estándar es la \textit{mean average precision} (mAP), la cual se fundamenta en el coeficiente de \textit{Intersection over Union} (IoU).
 
+\begin{equation}
+    \text{IoU} = \frac{|B_p \cap B_{gt}|}{|B_p \cup B_{gt}|}
+\end{equation}
 
-\subsection{Metricas de Evaluación}
-Para la evaluación de los modelos de clasificación, se han utilizado las métricas de precisión, mAP 50 y mAP 50-95. La precisión mide la proporción de predicciones correctas sobre el total de predicciones realizadas. El mAP 50 (mean Average Precision at IoU 0.5) evalúa la precisión promedio considerando un umbral de Intersección sobre Unión (IoU) del 50\%, mientras que el mAP 50-95 promedia la precisión en múltiples umbrales de IoU, proporcionando una evaluación más robusta del rendimiento del modelo.\\
+La IoU cuantifica la superposición entre la predicción del modelo ($B_p$) y la anotación real ($B_{gt}$) de la \textit{bounding box}, sirviendo como criterio para determinar el éxito de una detección.
 
-Se diseñaron tres experimentos principales para comparar los enfoques de detección y clasificación:\\
-
-\subsection{Arquitecturas del pipeline implementadas}
-El primer  experimento (Baseline Monolitico) consiste en entrenar un único modelo de detección de objetos (YOLOv8) para identificar todas las clases de patógenos foliares sin considerar la especie del árbol huésped. Este modelo debe distinguir simultáneamente entre todas las enfermedades de todas las plantas, representando el enfoque estándar "end-to-end". Este enfoque sirve como línea base para evaluar la efectividad de los métodos jerárquicos.\\
-
-El segundo experimento (Pipeline Híbrido Unificado)  implementa un enfoque jerárquico en dos etapas. En la primera etapa, se entrenó un modelo de clasificación de imágenes basado en MobileNet para identificar la especie del árbol (rosa, patata o manzana), alcanzando una exactitud del 99.84\%. En la segunda etapa, la predicción de la especie actúa como un mecanismo de condicionamiento lógico (masking) sobre un único detector YOLOv8, restringiendo el espacio de búsqueda exclusivamente a las enfermedades biológicamente plausibles para la especie identificada. Este enfoque permite reducir drásticamente las confusiones entre especies sin incrementar significativamente el coste computacional.
-
-El tercer experimento (Pipeline Híbrico Modular)  explora una arquitectura jerárquica aún más especializada. Tras la clasificación de la especie vegetal mediante MobileNet, se activan modelos de detección independientes entrenados específicamente para cada especie. Cada detector se enfoca únicamente en distinguir entre los distintos patógenos foliares asociados a una única planta hospedadora. Este diseño maximiza la especialización del modelo y minimiza la ambigüedad inter-especie.
-
+En la práctica se reportan los valores de \textbf{mAP50} y \textbf{mAP50-95} para ofrecer una visión completa del desempeño del detector. 
+El \textbf{mAP50} establece un umbral de tolerancia relajado ($\text{IoU} \geq 0.50$), considerando válida cualquier predicción que se solape al menos en un 50\% con la referencia real, lo cual es indicativo de la capacidad del modelo para una localización general del objeto. 
+Por el contrario, la métrica \textbf{mAP50-95} es mucho más exigente, ya que calcula el promedio de la precisión sobre diez umbrales progresivos de IoU (desde 0.50 hasta 0.95 en intervalos de 0.05).
 
 \begin{table*}[!t]
 \centering
-\caption{Comparativa de rendimiento (mAP@50 y mAP@50-95).}
+\caption{Comparativa de rendimiento.}
 \label{tab:resultados_resumen}
 \scalebox{1}{ 
     \begin{tabular}{lcccccc}
     \toprule
-     & \multicolumn{2}{c}{\textbf{Baseline}} & \multicolumn{2}{c}{\textbf{Unificado}} & \multicolumn{2}{c}{\textbf{Especializado}} \\
-    \textbf{Especie} & \textbf{mAP50} & \textbf{50-95} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{50-95} \\
+     & \multicolumn{2}{c}{\textbf{Monolítico}} & \multicolumn{2}{c}{\textbf{Unificado}} & \multicolumn{2}{c}{\textbf{Especializado}} \\
+    \textbf{Especie} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{mAP50-95} \\
     \midrule
     Manzana & 0.6356 & 0.4981 & 0.9378 & 0.7110 & 0.9275 & 0.7145 \\
     Patatas & 0.7965 & 0.6296 & 0.7965 & 0.6296 & 0.8239 & 0.6610 \\
@@ -312,29 +378,36 @@ El tercer experimento (Pipeline Híbrico Modular)  explora una arquitectura jer�
 
 \subsection{Resultados}
 
-Los resultados obtenidos de los tres enfoques experimentales se resumen en la Tabla \ref{tab:resultados_resumen}.
+Como se puede observar en la Tabla \ref{tab:resultados_resumen}, los experimentos muestran una clara diferencia de rendimiento entre intentar detectar todo a la vez y dividir el problema por especies. 
+El modelo \textbf{Monolítico}, que intenta aprender todas las enfermedades simultáneamente, tuvo bastantes dificultades, quedándose con un promedio de mAP50 de solo 0.66. 
+El problema principal de este enfoque es que el modelo se confunde fácilmente ya que al tener que distinguir entre tantas texturas diferentes de hojas al mismo tiempo, termina cometiendo errores básicos, como detectar una enfermedad de rosa en una hoja de manzana. 
+Esto se nota especialmente en las clases de Rosa y Manzana, donde los resultados fueron bastante bajos (0.56 y 0.63 respectivamente).
 
-Los datos evidencian que la falta de contexto biológico penaliza severamente al modelo \textit{Baseline}, especialmente en las clases Rosas (0.56 mAP50) y Manzanas (0.6356 mAP50). Esto sugiere que el modelo monolítico sufre de ``alucinaciones cruzadas'', confundiendo texturas de enfermedades similares entre especies distintas.
+Al introducir la clasificación previa, los resultados mejoraron notablemente. 
+El caso más evidente es el de las Rosas, donde el enfoque \textbf{Especializado} consiguió aumentar la precisión de 0.56 a casi 0.96. 
+Además, no solo detecta mejor qué hojas están enfermas, sino que predice las \textit{bounding box} con mucha más exactitud; la métrica mAP50-95, se duplicó de 0.29 a 0.65.
+Esto confirma que es mucho más fácil para el modelo aprender las formas complejas de una hoja de rosa si no tiene que preocuparse por las formas de las patatas o las manzanas al mismo tiempo.
 
-La incorporación de la etapa de clasificación en los enfoques jerárquicos genera una mejora sustancial:
-\textbf{Análisis detallado por especie (mAP@50 y mAP@50-95):}
-
-\begin{itemize}
-    \item Rosas  Esta clase ilustra el mayor beneficio del enfoque jerárquico. El \textit{Baseline} no solo fallaba en la detección (mAP@50 de 0.5640), sino que su precisión de localización era deficiente (mAP@50-95 de 0.2966). La implementación del pipeline disparó la detección por encima del 0.92 y, crucialmente, el modelo Especializado duplicó la calidad de la localización (0.6509), demostrando que los expertos aprenden mejor la morfología compleja de la hoja de rosa.
-    
-    \item Manzanas Se observa una correlación directa entre la eliminación de la ambigüedad y la precisión geométrica. El mAP@50 saltó del 0.6356 al 0.9378 en el enfoque Unificado, arrastrando consigo una mejora sustancial en el mAP@50-95 (de 0.4981 a 0.7110). Esto indica que el modelo condicionado no solo encuentra más enfermedades, sino que delimita sus bordes con mucha mayor exactitud.
-    
-    \item Patatas  Aunque la detección general (mAP@50) se mantuvo estable en torno a 0.79 en todos los enfoques —sugiriendo una robustez visual inherente al tizón—, el mAP@50-95 revela una ventaja oculta del \textit{Pipeline Especializado}. Este enfoque alcanzó un 0.6610 frente al 0.6296 del \textit{Baseline}, confirmando que un modelo dedicado exclusivamente a la patata logra ajustar mejor las cajas delimitadoras (bounding boxes) que uno generalista.
-    
-   
-\end{itemize}
+El análisis comparativo entre los métodos \textbf{Unificado} y \textbf{Especializado} reveló que entrenar modelos expertos por especie es superior a aplicar filtros lógicos sobre un modelo generalista. 
+Aunque ambos métodos comparten la etapa de clasificación inicial, solo el enfoque \textbf{Especializado} logró superar las limitaciones del modelo base en la detección de patata (0.82 vs 0.79), demostrando que la especialización mediante entrenamiento dedicado es más efectiva que el post-procesamiento de predicciones genéricas. 
+Por tanto, el sistema \textbf{Especializado} emergió como la mejor opción con un mAP50 promedio de 0.90.
 
 
 \section{Conclusiones}
 
-Sección que presenta, brevemente y a modo de resumen, las principales conclusiones del trabajo realizado. También suele incluir posibles trabajos futuros. Es decir, cuáles son las líneas más prometedoras para continuar con este trabajo, así como posibles propuestas de mejora. IMPORTANTE: estas son las conclusiones científicas alcanzadas en el proyecto; ¡no tus conclusiones personales sobre el trabajo que has realizado!
+El presente trabajo ha abordado el desafío de detectar enfermedades en múltiples tipos de cultivos, demostrando que el contexto biológico es una pieza fundamental que a menudo se ignora en los modelos de inteligencia artificial tradicionales. Nuestros experimentos validan la hipótesis inicial; dividir el problema en dos pasos jerárquicos (primero identificar la planta y luego buscar la enfermedad) es una estrategia muy superior a intentar resolverlo todo con un único modelo monolítico (\textit{end-to-end}).
 
+Cuantitativamente, el enfoque jerárquico especializado no solo mejoró el rendimiento, sino que transformó la fiabilidad del sistema, elevando la precisión media (mAP50) de un modesto 0.6654 a un sobresaliente 0.9029. Este salto de calidad se vio claramente en el caso de las rosas, el cultivo más complejo visualmente, donde logramos duplicar la capacidad del modelo para localizar las lesiones con exactitud. Esto nos permite concluir que restringir el espacio de búsqueda elimina la confusión entre especies, permitiendo que cada detector se convierta en un verdadero experto en la morfología de su patógeno asignado, en lugar de ser un generalista propenso a errores.
 
+Finalmente, este estudio también confirma la viabilidad técnica de la propuesta. Al integrar arquitecturas diseñadas para la eficiencia, como MobileNetV3 y YOLOv8s, hemos demostrado que es posible alcanzar niveles de precisión de laboratorio utilizando modelos ligeros y rápidos. Esto es crucial para la agricultura de precisión, ya que asegura que esta tecnología puede desplegarse en dispositivos móviles accesibles para los agricultores, sin depender de hardware costoso o conexiones a internet de alta velocidad.
+
+\subsection{Líneas Futuras}
+
+Una de las extensiones más inmediatas para este trabajo sería evaluar la escalabilidad de la arquitectura jerárquica ante un aumento significativo en la diversidad de cultivos. Actualmente, el sistema ha validado su eficacia con tres especies, pero un escenario agrícola real implica gestionar docenas de variedades. Sería interesante investigar si el clasificador MobileNetV3 mantiene su precisión al actuar como "enrutador" para 20 o 30 especies distintas, o si el aumento de clases comenzaría a introducir cuellos de botella que requieran una red más profunda. Ampliar el dataset permitiría confirmar si la estrategia de dividir el problema sigue siendo superior a los enfoques monolíticos a gran escala.
+
+Desde una perspectiva de \textit{deployment}, el siguiente paso lógico es la implementación física de estos modelos en una aplicación móvil nativa para realizar pruebas de campo en tiempo real. Aunque hemos simulado las restricciones de hardware, el despliegue real implica retos adicionales como la variabilidad extrema de la iluminación exterior o la estabilidad de la cámara en mano. En esta línea, se propone explorar técnicas de \textit{TinyML}, como la cuantización de pesos (pasar de precisión de 32 bits a 8 bits) y la poda neuronal (\textit{pruning}), para reducir aún más el tamaño de los modelos YOLOv8. El objetivo sería lograr que el sistema funcione fluidamente incluso en teléfonos de gama baja sin conexión a internet, democratizando el acceso a esta tecnología.
+
+Finalmente, desde el punto de vista agronómico, el sistema podría evolucionar de la simple detección a la estimación de la severidad del daño. Actualmente, el modelo nos dice "dónde" está la enfermedad y "qué" es, pero no "cuánto" daño ha sufrido la planta. Incorporar técnicas de segmentación semántica o algoritmos de post-procesado que calculen el porcentaje de área foliar afectada sería un valor añadido enorme. Esto permitiría al sistema no solo diagnosticar, sino recomendar la urgencia del tratamiento o la dosis exacta de producto fitosanitario necesaria, convirtiendo la herramienta en un asistente integral para la toma de decisiones en el cultivo.
 
 %%%%%%%%% REFERENCES
 {\small
