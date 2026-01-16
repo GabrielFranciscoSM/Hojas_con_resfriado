@@ -244,6 +244,39 @@ En consecuencia, se selecciona \textbf{YOLOv8s} como el detector final, al ofrec
 
 Para la elección del mejor metodo para detección y clasificación de patógenos foliares, se ha utilizado el conjunto de datos Global Plant Dataset, un corpus heterogéneo , compuesto por los anteriores datsets mencionados , con ellos se han realizado diversos experimentos. A continuación se describen los experimentos realizados y los resultados obtenidos.\\
 
+\subsection{Configuración Experimental}
+Los experimentos fueron realizados utilizando el entorno de computación en la nube Google Colab, haciendo uso de aceleración por GPU (A100 o la T4) para el entrenamiento.\\
+
+Para la etapa de clasificación de imágenes (identificación de especies), se utilizó la arquitectura \textbf{MobileNetV3 Small} , inicializada con pesos pre-entrenados en ImageNet-1k. Se implementó una estrategia de entrenamiento en dos fases para adaptar el modelo sin degradar las características aprendidas previamente:
+
+\begin{enumerate}
+    \item \textbf{Fase 1 (Entrenamiento de la Cabeza):} Se congelaron (\textit{freeze}) los pesos de la red troncal (\textit{backbone}) y se entrenó únicamente la capa de clasificación.
+    \begin{itemize}
+        \item \textbf{Duración:} 5 épocas.
+        \item \textbf{Optimizador:} AdamW con tasa de aprendizaje inicial de $1 \times 10^{-3}$.
+    \end{itemize}
+    
+    \item \textbf{Fase 2 (Ajuste Fino ):} Se descongelaron todos los parámetros del modelo para permitir la actualización de los pesos profundos.
+    \begin{itemize}
+        \item \textbf{Duración:} 10 épocas.
+        \item \textbf{Optimizador:} AdamW con una tasa de aprendizaje ultra-baja de $8 \times 10^{-6}$ para evitar el olvido catastrófico.
+    \end{itemize}
+\end{enumerate}
+
+En ambas fases se utilizó la función de pérdida \textit{CrossEntropyLoss} y un planificador de tasa de aprendizaje (\textit{Scheduler}).\\  
+
+Para la etapa de detección de objetos, se seleccionó la arquitectura \textbf{YOLOv8 en su versión Small (YOLOv8s)}. Se partió de pesos pre-entrenados en el dataset COCO para aprovechar la transferencia de aprendizaje (\textit{transfer learning}), permitiendo al modelo converger más rápido hacia las características específicas de las patologías vegetales.
+
+La configuración de hiperparámetros para el entrenamiento (\textit{fine-tuning}) fue la siguiente:
+\begin{itemize}
+    \item \textbf{Resolución de entrada:} $640 \times 640$ píxeles.
+    \item \textbf{Tamaño de lote (Batch size):} 16.
+    \item \textbf{Ciclos de entrenamiento (Épocas):} 30.
+\end{itemize}
+
+El entrenamiento utilizó la función de pérdida y el optimizador por defecto de la librería Ultralytics, aplicando técnicas de aumento de datos online (como \textit{Mosaic augmentation}) inherentes al framework para mejorar la capacidad de generalización del modelo.
+
+
 \subsection{Metricas de Evaluación}
 Para la evaluación de los modelos de clasificación, se han utilizado las métricas de precisión, mAP 50 y mAP 50-95. La precisión mide la proporción de predicciones correctas sobre el total de predicciones realizadas. El mAP 50 (mean Average Precision at IoU 0.5) evalúa la precisión promedio considerando un umbral de Intersección sobre Unión (IoU) del 50\%, mientras que el mAP 50-95 promedia la precisión en múltiples umbrales de IoU, proporcionando una evaluación más robusta del rendimiento del modelo.\\
 
