@@ -399,12 +399,10 @@ Los datos validan que la segregación del problema (usar un modelo experto por c
 Hemos logrado elevar la precisión media (mAP50) de un 0.8742 en el modelo base a un 0.9170 en el sistema propuesto. 
 Más importante aún es la ganancia en la calidad de la localización (mAP50-95), que subió de 0.61 a casi 0.68. Este incremento demuestra que los modelos especializados no solo encuentran más enfermedades (especialmente en casos difíciles como la patata), sino que delimitan el daño con mucha mayor exactitud, algo fundamental si en el futuro se quiere estimar la severidad de la infección.
 
-<<<<<<< HEAD
-En conclusión, aunque el filtrado lógico (método Unificado) resultó innecesario debido a la robustez del detector base, la especialización completa demostró ser el camino correcto. Al combinar la eficiencia de MobileNetV3 para identificar el cultivo con la precisión de detectores YOLOv8s dedicados, hemos diseñado un sistema que ofrece lo mejor de dos mundos: la agilidad necesaria para funcionar en dispositivos móviles y la fiabilidad de un diagnóstico experto.
-=======
 Como parte fundamental de este trabajo, se ha desarrollado y publicado todo el código fuente del proyecto en un repositorio de acceso abierto. En él se incluyen los notebooks utilizados para el entrenamiento de los modelos, los scripts de validación y las instrucciones necesarias para reproducir los experimentos presentados. Todo el material está disponible en \url{https://github.com/GabrielFranciscoSM/Hojas_con_resfriado}, con el objetivo de que estos resultados puedan servir de base para futuros estudios o mejoras por parte de la comunidad universitaria
 
->>>>>>> 4fd1f32 (docs: inclusión de repositorio)
+En conclusión, aunque el filtrado lógico (método Unificado) resultó innecesario debido a la robustez del detector base, la especialización completa demostró ser el camino correcto. Al combinar la eficiencia de MobileNetV3 para identificar el cultivo con la precisión de detectores YOLOv8s dedicados, hemos diseñado un sistema que ofrece lo mejor de dos mundos: la agilidad necesaria para funcionar en dispositivos móviles y la fiabilidad de un diagnóstico experto.
+
 \subsection{Líneas Futuras}
 
 Una de las extensiones más inmediatas para este trabajo sería evaluar la escalabilidad de la arquitectura jerárquica ante un aumento significativo en la diversidad de cultivos. Actualmente, el sistema ha validado su eficacia con tres especies, pero un escenario agrícola real implica gestionar docenas de variedades. Sería interesante investigar si el clasificador MobileNetV3 mantiene su precisión al actuar como "enrutador" para 20 o 30 especies distintas, o si el aumento de clases comenzaría a introducir cuellos de botella que requieran una red más profunda. Ampliar el dataset permitiría confirmar si la estrategia de dividir el problema sigue siendo superior a los enfoques monolíticos a gran escala.
