@@ -329,6 +329,9 @@ Esta combinación de estabilidad predictiva y agilidad de procesamiento consolid
 \label{fig:pipeline_single}
 \end{figure*}
 
+
+
+
 \subsection{Configuración Experimental}
 
 La ejecución de los experimentos y el entrenamiento de los modelos se llevaron a cabo utilizando el entorno de computación de Google Colab, aprovechando la aceleración por hardware mediante GPUs NVIDIA A100.
@@ -388,7 +391,17 @@ El problema no era la confusión taxonómica, sino la falta de capacidad de la r
 
 Aquí es donde brilla el enfoque \textbf{Especializado} puesto que al entrenar modelos dedicados logramos romper ese techo de rendimiento que limitaba a los otros dos enfoques.
 La mejora más notable se dio en la clase patatas, la más difícil del conjunto, donde la precisión saltó de un 0.77 a un 0.84. 
-De igual forma, en las rosas, aunque la detección ya era buena, el modelo especializado mejoró drásticamente la calidad del ajuste de las cajas (\textit{bounding boxes}), subiendo el mAP50-95 de 0.54 a casi 0.65. Esto confirma que, para obtener un rendimiento de excelencia (con un promedio global de 0.9170), es necesario que la red neuronal se centre exclusivamente en un solo cultivo, captando matices que un modelo generalista pasa por alto.
+De igual forma, en las rosas, aunque la detección ya era buena, el modelo especializado mejoró drásticamente la calidad del ajuste de las cajas (\textit{bounding boxes}), subiendo el mAP50-95 de 0.54 a casi 0.65. 
+Como se puede apreciar en la Figura \ref{fig:ejemplo_prediccion_manzana}, el modelo es capaz de localizar con precisión múltiples lesiones en una misma hoja, incluso en casos de solapamiento parcial.
+Esto confirma que, para obtener un rendimiento de excelencia (con un promedio global de 0.9170), es necesario que la red neuronal se centre exclusivamente en un solo cultivo, captando matices que un modelo generalista pasa por alto.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.25\textwidth]{resources/Prediccionmanzana1.jpg}
+    \caption{Ejemplo de detección y clasificación de patógenos en una hoja de manzana utilizando el pipeline especializado.}
+    \label{fig:ejemplo_prediccion_manzana}
+\end{figure}
+
 
 \section{Conclusiones}
 
