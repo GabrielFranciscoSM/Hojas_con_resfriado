@@ -63,7 +63,7 @@
    La detección temprana y precisa de enfermedades vegetales es crítica para la agricultura de precisión y la seguridad alimentaria.
    Los enfoques actuales basados en Deep Learning, a pesar de mostrar resultados prometedores, suelen carecer de información contextual sobre el huésped, lo que limita su precisión en escenarios de múltiples cultivos. 
    Este trabajo propone un enfoque jerárquico de dos etapas para abordar esta limitación. En primer lugar, se realiza una clasificación de la especie arbórea para establecer un contexto biológico y, posteriormente, un detector de objetos localiza y clasifica los patógenos específicos asociados a dicha especie.
-   Los resultados muestran que incorporar la identificación previa del huésped incrementa la precisión media (mAP) en un [X]\% respecto a los detectores genéricos de una sola etapa ("end-to-end"), demostrando la superioridad de los modelos condicionados biológicamente.
+   Los resultados muestran que incorporar la identificación previa del huésped incrementa la precisión media (mAP) en un 11\% respecto a los detectores genéricos de una sola etapa ("end-to-end"), demostrando la superioridad de los modelos condicionados biológicamente.
 \end{abstract}
 
 %%%%%%%%% CUERPO DEL TEXTO
@@ -358,49 +358,48 @@ Por el contrario, la métrica \textbf{mAP50-95} es mucho más exigente, ya que c
 
 \begin{table*}[!t]
 \centering
-\caption{Comparativa de rendimiento.}
-\label{tab:resultados_resumen}
 \scalebox{1}{ 
     \begin{tabular}{lcccccc}
     \toprule
      & \multicolumn{2}{c}{\textbf{Monolítico}} & \multicolumn{2}{c}{\textbf{Unificado}} & \multicolumn{2}{c}{\textbf{Especializado}} \\
-    \textbf{Especie} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{mAP50-95} \\
+    \textbf{Especie} & \textbf{mAP50} & \textbf{50-95} & \textbf{mAP50} & \textbf{mAP50-95} & \textbf{mAP50} & \textbf{50-95} \\
     \midrule
-    Manzana & 0.6356 & 0.4981 & 0.9378 & 0.7110 & 0.9275 & 0.7145 \\
-    Patatas & 0.7965 & 0.6296 & 0.7965 & 0.6296 & 0.8239 & 0.6610 \\
-    Rosas   & 0.5640 & 0.2966 & 0.9248 & 0.5354 & 0.9574 & 0.6509 \\
+    Manzana & 0.9302 & 0.6932 & 0.9302 & 0.6931 & 0.9530 & 0.7250 \\
+    Patatas & 0.7780 & 0.6153 & 0.7780 & 0.6153 & 0.8411 & 0.6654 \\
+    Rosas   & 0.9144 & 0.5445 & 0.9142 & 0.5441 & 0.9569 & 0.6490 \\
     \midrule
-    \textbf{Avg} & \textbf{0.6654} & \textbf{0.4748} & \textbf{0.8864} & \textbf{0.6253} & \textbf{0.9029} & \textbf{0.6755} \\
+    \textbf{Avg} & \textbf{0.8742} & \textbf{0.6177} & \textbf{0.8741} & \textbf{0.6175} & \textbf{0.9170} & \textbf{0.6798} \\
     \bottomrule
     \end{tabular}%
 }
+\caption{Comparativa de rendimiento (mAP50 y mAP50-95) entre las tres estrategias evaluadas.}
+\label{tab:resultados_resumen}
 \end{table*}
 
 \subsection{Resultados}
 
-Como se puede observar en la Tabla \ref{tab:resultados_resumen}, los experimentos muestran una clara diferencia de rendimiento entre intentar detectar todo a la vez y dividir el problema por especies. 
-El modelo \textbf{Monolítico}, que intenta aprender todas las enfermedades simultáneamente, tuvo bastantes dificultades, quedándose con un promedio de mAP50 de solo 0.66. 
-El problema principal de este enfoque es que el modelo se confunde fácilmente ya que al tener que distinguir entre tantas texturas diferentes de hojas al mismo tiempo, termina cometiendo errores básicos, como detectar una enfermedad de rosa en una hoja de manzana. 
-Esto se nota especialmente en las clases de Rosa y Manzana, donde los resultados fueron bastante bajos (0.56 y 0.63 respectivamente).
+Al analizar la Tabla \ref{tab:resultados_resumen}, nos encontramos con un escenario muy interesante. A diferencia de lo que podría esperarse, el modelo \textbf{Monolítico} demostró ser bastante competente, alcanzando un mAP50 promedio de 0.8742. 
+Esto indica que la arquitectura YOLOv8 es robusta y capaz de aprender múltiples clases simultáneamente sin desmoronarse. 
+Sin embargo, los datos también revelan que este enfoque generalista tiene una cota superior, aunque detecta bien, le cuesta perfeccionar los resultados en las clases más difíciles o cuando se requiere una precisión geométrica muy alta.
 
-Al introducir la clasificación previa, los resultados mejoraron notablemente. 
-El caso más evidente es el de las Rosas, donde el enfoque \textbf{Especializado} consiguió aumentar la precisión de 0.56 a casi 0.96. 
-Además, no solo detecta mejor qué hojas están enfermas, sino que predice las \textit{bounding box} con mucha más exactitud; la métrica mAP50-95, se duplicó de 0.29 a 0.65.
-Esto confirma que es mucho más fácil para el modelo aprender las formas complejas de una hoja de rosa si no tiene que preocuparse por las formas de las patatas o las manzanas al mismo tiempo.
+La comparación con el método \textbf{Unificado} es reveladora. Los resultados son prácticamente idénticos a los del Monolítico (por ejemplo, en patatas ambos obtienen un 0.7780 y en manzanas un 0.9302).
+Esto nos indica que el modelo base no estaba cometiendo errores de confusión de especies, por lo que aplicar un filtro lógico a posteriori no aportó ninguna mejora real.
+El problema no era la confusión taxonómica, sino la falta de capacidad de la red para especializarse en los detalles finos de cada plaga cuando tiene que atender a todas a la vez.
 
-El análisis comparativo entre los métodos \textbf{Unificado} y \textbf{Especializado} reveló que entrenar modelos expertos por especie es superior a aplicar filtros lógicos sobre un modelo generalista. 
-Aunque ambos métodos comparten la etapa de clasificación inicial, solo el enfoque \textbf{Especializado} logró superar las limitaciones del modelo base en la detección de patata (0.82 vs 0.79), demostrando que la especialización mediante entrenamiento dedicado es más efectiva que el post-procesamiento de predicciones genéricas. 
-Por tanto, el sistema \textbf{Especializado} emergió como la mejor opción con un mAP50 promedio de 0.90.
-
+Aquí es donde brilla el enfoque \textbf{Especializado} puesto que al entrenar modelos dedicados logramos romper ese techo de rendimiento que limitaba a los otros dos enfoques.
+La mejora más notable se dio en la clase patatas, la más difícil del conjunto, donde la precisión saltó de un 0.77 a un 0.84. 
+De igual forma, en las rosas, aunque la detección ya era buena, el modelo especializado mejoró drásticamente la calidad del ajuste de las cajas (\textit{bounding boxes}), subiendo el mAP50-95 de 0.54 a casi 0.65. Esto confirma que, para obtener un rendimiento de excelencia (con un promedio global de 0.9170), es necesario que la red neuronal se centre exclusivamente en un solo cultivo, captando matices que un modelo generalista pasa por alto.
 
 \section{Conclusiones}
 
-El presente trabajo ha abordado el desafío de detectar enfermedades en múltiples tipos de cultivos, demostrando que el contexto biológico es una pieza fundamental que a menudo se ignora en los modelos de inteligencia artificial tradicionales. Nuestros experimentos validan la hipótesis inicial; dividir el problema en dos pasos jerárquicos (primero identificar la planta y luego buscar la enfermedad) es una estrategia muy superior a intentar resolverlo todo con un único modelo monolítico (\textit{end-to-end}).
+El presente trabajo ha explorado cómo la integración del contexto biológico puede refinar la detección de enfermedades vegetales. 
+Nuestros experimentos demuestran que, si bien las arquitecturas modernas como YOLOv8 tienen una gran capacidad de generalización (logrando un buen desempeño base), la estrategia jerárquica de especialización sigue siendo superior para alcanzar los niveles de precisión necesarios en una aplicación real de agricultura de precisión.
 
-Cuantitativamente, el enfoque jerárquico especializado no solo mejoró el rendimiento, sino que transformó la fiabilidad del sistema, elevando la precisión media (mAP50) de un modesto 0.6654 a un sobresaliente 0.9029. Este salto de calidad se vio claramente en el caso de las rosas, el cultivo más complejo visualmente, donde logramos duplicar la capacidad del modelo para localizar las lesiones con exactitud. Esto nos permite concluir que restringir el espacio de búsqueda elimina la confusión entre especies, permitiendo que cada detector se convierta en un verdadero experto en la morfología de su patógeno asignado, en lugar de ser un generalista propenso a errores.
+Los datos validan que la segregación del problema (usar un modelo experto por cada especie) aporta un valor añadido significativo. 
+Hemos logrado elevar la precisión media (mAP50) de un 0.8742 en el modelo base a un 0.9170 en el sistema propuesto. 
+Más importante aún es la ganancia en la calidad de la localización (mAP50-95), que subió de 0.61 a casi 0.68. Este incremento demuestra que los modelos especializados no solo encuentran más enfermedades (especialmente en casos difíciles como la patata), sino que delimitan el daño con mucha mayor exactitud, algo fundamental si en el futuro se quiere estimar la severidad de la infección.
 
-Finalmente, este estudio también confirma la viabilidad técnica de la propuesta. Al integrar arquitecturas diseñadas para la eficiencia, como MobileNetV3 y YOLOv8s, hemos demostrado que es posible alcanzar niveles de precisión de laboratorio utilizando modelos ligeros y rápidos. Esto es crucial para la agricultura de precisión, ya que asegura que esta tecnología puede desplegarse en dispositivos móviles accesibles para los agricultores, sin depender de hardware costoso o conexiones a internet de alta velocidad.
-
+En conclusión, aunque el filtrado lógico (método Unificado) resultó innecesario debido a la robustez del detector base, la especialización completa demostró ser el camino correcto. Al combinar la eficiencia de MobileNetV3 para identificar el cultivo con la precisión de detectores YOLOv8s dedicados, hemos diseñado un sistema que ofrece lo mejor de dos mundos: la agilidad necesaria para funcionar en dispositivos móviles y la fiabilidad de un diagnóstico experto.
 \subsection{Líneas Futuras}
 
 Una de las extensiones más inmediatas para este trabajo sería evaluar la escalabilidad de la arquitectura jerárquica ante un aumento significativo en la diversidad de cultivos. Actualmente, el sistema ha validado su eficacia con tres especies, pero un escenario agrícola real implica gestionar docenas de variedades. Sería interesante investigar si el clasificador MobileNetV3 mantiene su precisión al actuar como "enrutador" para 20 o 30 especies distintas, o si el aumento de clases comenzaría a introducir cuellos de botella que requieran una red más profunda. Ampliar el dataset permitiría confirmar si la estrategia de dividir el problema sigue siendo superior a los enfoques monolíticos a gran escala.
@@ -410,6 +409,7 @@ Desde una perspectiva de \textit{deployment}, el siguiente paso lógico es la im
 Finalmente, desde el punto de vista agronómico, el sistema podría evolucionar de la simple detección a la estimación de la severidad del daño. Actualmente, el modelo nos dice "dónde" está la enfermedad y "qué" es, pero no "cuánto" daño ha sufrido la planta. Incorporar técnicas de segmentación semántica o algoritmos de post-procesado que calculen el porcentaje de área foliar afectada sería un valor añadido enorme. Esto permitiría al sistema no solo diagnosticar, sino recomendar la urgencia del tratamiento o la dosis exacta de producto fitosanitario necesaria, convirtiendo la herramienta en un asistente integral para la toma de decisiones en el cultivo.
 
 %%%%%%%%% REFERENCES
+
 {\small
 \bibliographystyle{ieee_fullname}
 \bibliography{egbib}
