@@ -1,117 +1,134 @@
-# Detección y Clasificación de Patógenos Foliares mediante Visión por Computador
+# 🍃 Detección y Clasificación de Patógenos Foliares mediante Visión por Computador
 
-**Proyecto para la asignatura de Visión por Computador (VC) del Grado en Ingeniería Informática de la Universidad de Granada (UGR).**
+[![Documentation](https://img.shields.io/badge/Documentation-DeepWiki-blue)](https://deepwiki.com/GabrielFranciscoSM/Hojas_con_resfriado)
+[![Repo](https://img.shields.io/badge/GitHub-Repository-green)](https://github.com/GabrielFranciscoSM/Hojas_con_resfriado/blob/main/README.md)
+[![UGR](https://img.shields.io/badge/UGR-Grado%20Ingenier%C3%ADa%20Inform%C3%A1tica-red)](https://grados.ugr.es/informatica/)
+[![Framework](https://img.shields.io/badge/Framework-YOLOv8%20%7C%20PyTorch-orange)](https://github.com/ultralytics/ultralytics)
 
----
-
-## Autores
-
-*   Gabriel Francisco Sánchez Muñoz
-*   Germán Rodríguez Vidal
-*   Miguel Ángel Moreno Castro
-*   Pablo García Bas
+> **Proyecto para la asignatura de Visión por Computador (VC)**  
+> Grado en Ingeniería Informática, Universidad de Granada (UGR).
 
 ---
 
-## 1. Motivación y Problema
+## 📄 Descripción del Proyecto
 
-La detección temprana de enfermedades en plantas es crucial para la agricultura y la botánica. Sin embargo, muchas enfermedades foliares presentan síntomas visualmente similares, lo que dificulta un diagnóstico preciso. Un análisis aislado de la lesión, sin conocer la especie de la planta, puede llevar a conclusiones erróneas.
+Este trabajo aborda el problema de la detección de enfermedades en plantas mediante un **enfoque jerárquico de dos etapas**. A diferencia de los modelos monolíticos tradicionales, nuestro sistema imita el razonamiento de un experto agrónomo: primero identifica la especie de la planta y, posteriormente, busca patologías específicas de esa especie.
 
-Este proyecto busca resolver esta ambigüedad desarrollando un sistema automatizado que no solo identifique la enfermedad, sino que primero determine la especie de la hoja analizada para contextualizar el diagnóstico.
-
----
-
-## 2. Objetivos
-
-*   **Principal:** Desarrollar un modelo de Deep Learning capaz de clasificar la especie de una planta, detectar las lesiones en sus hojas y clasificar el patógeno causante de la enfermedad con alta precisión.
-*   **Secundarios:**
-    *   Investigar y comparar la efectividad de diferentes arquitecturas de redes neuronales para cada una de las tareas (clasificación y detección).
-    *   Crear un pipeline funcional que integre los diferentes modelos en una única secuencia de análisis.
-    *   Evaluar el rendimiento del sistema utilizando métricas estándar en visión por computador (Accuracy, Precision, Recall, mAP).
-    *   Documentar el proceso de desarrollo, los desafíos encontrados y los resultados obtenidos.
+El objetivo es reducir la confusión entre clases de diferentes cultivos y mejorar la precisión (**mAP**) en entornos reales.
 
 ---
 
-## 3. Metodología Propuesta
+## 🗂️ Datasets Utilizados
 
-El sistema propuesto consiste en un pipeline de dos etapas que procesa una imagen de una hoja:
+Para entrenar y validar los modelos, se recopilaron y curaron tres conjuntos de datos específicos, totalizando más de 5,000 imágenes con anotaciones detalladas.
 
-1.  **Clasificación de Especie:** Una Red Neuronal Convolucional (CNN) inicial recibe la imagen completa de la hoja y la clasifica para determinar la especie de la planta (ej. rosa, patata, manzano).
-2.  **Detección de Lesiones:** Un modelo de detección de objetos, como **YOLO (You Only Look Once)**, analiza la imagen para localizar y dibujar cajas delimitadoras (bounding boxes) alrededor de las áreas que presentan síntomas de enfermedad y a la vez clasificar el tipo de enfermedad.
+### 1. 🍎 [Manzanas (Science Data Bank)](https://www.scidb.cn/en/detail?dataSetId=0e1f57004db842f99668d82183afd578)
+Este dataset requirió un preprocesamiento para convertir máscaras de segmentación en *bounding boxes*.
+*   **Total Imágenes:** 1,641
+*   **Clases (5):**
+    *   `Alternaria leaf spot` (278 imgs)
+    *   `Brown spot` (215 imgs)
+    *   `Gray spot` (395 imgs)
+    *   `Rust` (344 imgs)
+    *   `Healthy leaf` (409 imgs)
+
+### 2. 🌹 [Rosas (Roboflow Universe)](https://universe.roboflow.com/rose-leaf-diseases/rose-leaf-diseases)
+Dataset con alta densidad de instancias (*patches*) por imagen.
+*   **Total Imágenes:** 2,725
+*   **Clases (4):**
+    *   `Black Spot` (5,565 instancias)
+    *   `Powdery Mildew` (7,346 instancias)
+    *   `Downy Mildew` (1,479 instancias)
+    *   `Normal` (1,598 instancias)
+
+### 3. 🥔 [Patatas (Roboflow)](https://app.roboflow.com/germanrv/potatoes_leaf-diseases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true)
+Dataset desafiante debido al desbalanceo de clases y similitud visual entre tizones.
+*   **Total Imágenes:** 812
+*   **Clases (3):**
+    *   `Early Blight` (18,069 instancias)
+    *   `Late Blight` (1,379 instancias)
+    *   `Healthy` (364 instancias)
+
 ---
 
-## 4. Datasets
+## 🏗️ Arquitectura Propuesta
 
-La viabilidad del proyecto depende de la disponibilidad de datos etiquetados para las tres tareas. Se han identificado los siguientes datasets como puntos de partida:
+Para resolver la confusión entre patologías visualmente similares de diferentes especies, implementamos un **Pipeline Jerárquico**. 
 
-*   **[New Plant Diseases Dataset](https://www.kaggle.com/datasets/vipoooool/new-plant-diseases-dataset/data):** Contiene un gran volumen de imágenes (aprox. 87,000) de hojas de diferentes especies con diversas enfermedades. Ideal para las etapas de clasificación.
-*   **[Plant Leaf Diseases Dataset](https://www.kaggle.com/datasets/nirmalsankalana/plant-diseases-training-dataset):** Otro recurso valioso para la clasificación de enfermedades.
+El sistema no intenta detectar todas las enfermedades a la vez (enfoque monolítico), sino que divide el problema en dos pasos lógicos:
 
-*   **[Leaf disease segmentation dataset](https://www.kaggle.com/datasets/fakhrealam9537/leaf-disease-segmentation-dataset/data):** Dataset con máscaras para la segmentación.
+1.  **Clasificación Taxonómica (Router):** Una red ligera (**MobileNetV3**) determina el contexto biológico (la especie).
+2.  **Detección Especializada:** La imagen se enruta al modelo **YOLOv8** específico para esa especie, reduciendo el espacio de búsqueda y aumentando la precisión.
 
-*   **[Apple Tree Leaf Disease Segmentation Dataset](https://www.scidb.cn/en/detail?dataSetId=0e1f57004db842f99668d82183afd578):** Segmentación de hojas de manzana
-*   **[Págnia con varios datasets](https://universe.roboflow.com/search?q=disease+-+v2+release+class%3Aleaf+object+detection):** Página web que contiene diferentes datasets para la segmentación de enfermedades de hojas.
-
-### Datasets finales
-
-*   **[Manzanas](https://www.scidb.cn/en/detail?dataSetId=0e1f57004db842f99668d82183afd578):** 
-    * imágenes: 1641
-    * Clases: 5
-        *   **Alternaria leaf spot**: 278 imágenes
-        *   **Brown spot**: 215 imágenes
-        *   **Gray spot**: 395 imágenes
-        *   **Healthy leaf**: 409 imágenes
-        *   **Rust**: 344 imágenes
+```mermaid
+graph TD
+    %% Nodos del Pipeline
+    Input[📷 Imagen de Entrada] -->|Inferencia| Router(🧠 MobileNetV3 Clasificador Taxonómico)
     
+    Router --> Decision{¿Especie?}
+    
+    %% Ramas de especialización
+    Decision -->|🍎 Manzana| YOLO_A[🚀 YOLOv8s Especialista Manzana]
+    Decision -->|🥔 Patata| YOLO_B[🚀 YOLOv8s Especialista Patata]
+    Decision -->|🌹 Rosa| YOLO_C[🚀 YOLOv8s Especialista Rosa]
+    
+    %% Salida
+    YOLO_A --> Output([🎯 Salida Final      Bounding Box + Enfermedad])
+    YOLO_B --> Output
+    YOLO_C --> Output
 
-*  **[Rosas](https://universe.roboflow.com/rose-leaf-diseases/rose-leaf-diseases):**
-   * imagenes: 2725
-   *   Clases: (4):
-       *   **Black Spot** (5565 patches)
-       *   **Powdery Mildew**(7346 patches)
-       *   **Normal**(1598 patches)
-       *  **Downy Mildew**(1479 patches)
-       
-* **[Patatas](https://app.roboflow.com/germanrv/potatoes_leaf-diseases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true)**
-   * imagenes: 812
-   *   Clases: (3)
-       * **early bright** (18069 patches)
-       * **late bright**   (1379 patches)
-       * **healthy** (364 patches)
-  
+    %% Estilos de los nodos
+    style Router fill:#ffeb3b,stroke:#333,stroke-width:2px,color:black
+    style YOLO_A fill:#81d4fa,stroke:#333,stroke-width:2px,color:black
+    style YOLO_B fill:#81d4fa,stroke:#333,stroke-width:2px,color:black
+    style YOLO_C fill:#81d4fa,stroke:#333,stroke-width:2px,color:black
+    style Output fill:#a5d6a7,stroke:#333,stroke-width:2px,color:black
+```
+---
 
+## 📊 Resultados Experimentales
+
+Comparamos nuestra propuesta contra un modelo único (**Monolítico**) y un modelo con filtrado lógico (**Unificado**). La estrategia especializada obtuvo los mejores resultados globales.
+
+| Estrategia | Manzana (mAP50) | Patatas (mAP50) | Rosas (mAP50) | **Promedio Global** |
+| :--- | :---: | :---: | :---: | :---: |
+| Monolítico | 0.9302 | 0.7780 | 0.9144 | 0.8742 |
+| Unificado | 0.9302 | 0.7780 | 0.9142 | 0.8741 |
+| **Especializado (Propuesto)** | **0.9530** | **0.8411** | **0.9569** | **0.9170** |
+
+> **Nota:** La mejora es especialmente notable en el dataset de **Patatas** (+6.3%), demostrando que la especialización ayuda significativamente en cultivos con patologías visualmente complejas.
 
 ---
 
-## 5. Tecnologías y Entorno
+## 🚀 Instalación y Reproducción
 
-*   **Lenguaje:** Python
-*   **Librerías Principales:** TensorFlow/Keras o PyTorch, OpenCV, Scikit-learn, Pandas, Matplotlib.
-*   **Entorno de desarrollo:** Google Colab Pro (aprovechando sus GPUs para el entrenamiento).
-*   **Control de versiones:** Git y GitHub.
+El código está optimizado para ejecutarse en entornos como Google Colab (con GPU T4/A100).
+
+```bash
+# Clonar repositorio
+git clone https://github.com/GabrielFranciscoSM/Hojas_con_resfriado.git
+cd Hojas_con_resfriado
+
+# Instalar dependencias
+pip install ultralytics opencv-python-headless matplotlib
+```
+
+Para entrenar los modelos desde cero, revisa la carpeta `notebooks/` donde encontrarás los scripts de entrenamiento para la Fase 1 (MobileNet) y Fase 2 (YOLOv8).
 
 ---
 
-## 6. Interesting Links
+## 👥 Autores
 
-* **[YOLO from scratch](https://github.com/williamcfrancis/YOLOv3-Object-Detection-from-Scratch)**
+Estudiantes del Grado en Ingeniería Informática (UGR):
+
+*   **Gabriel Sánchez Muñoz** - [gabrielfsm@correo.ugr.es](mailto:gabrielfsm@correo.ugr.es)
+*   **Germán Rodríguez Vidal** - [germanrv@correo.ugr.es](mailto:germanrv@correo.ugr.es)
+*   **Pablo García Bas** - [pablogarciabas@correo.ugr.es](mailto:pablogarciabas@correo.ugr.es)
+*   **Miguel Ángel Moreno Castro** - [miguelangelmc@correo.ugr.es](mailto:miguelangelmc@correo.ugr.es)
 
 ---
 
-## 7. TODOS
+## 📚 Referencias y Documentación
 
-*   Datasets
-    *   [X] Elegir dataset adecuado, lo suficientemente grande y con suficientes ejemplos de plantas y enfermedades "similares"
-    *   [X] Estudiar si hay que preprocesar / aumentar el dataset
-    *   [X] Documentar Dataset
-*   Modelo Clasificación
-    *   [X] Estudiar / Elegir Modelo de clasificación inicial del pipeline
-*   Object detection
-    *   [X] Estudiar modelos de detección de objetoas
-    *   [X] Estudiar YOLO (diferentes versiones y/o implementación from scratch)
-*   Finetuning
-    *   [X] Estudiar necesidad y factibilidad de hacer finetining para los modelos (los 3)
-*   Integración
-    *   [ ] Diseñar el pipeline con los diferentes modelos
-    *   [ ] Testear y afinar los modelos
-*   Documentación
+*   Para una explicación detallada de la metodología, visita nuestra [Wiki en DeepWiki](https://deepwiki.com/GabrielFranciscoSM/Hojas_con_resfriado).
+*   Paper base: *Detección y Clasificación de Patógenos Foliares mediante Visión por Computador* (incluido en este repo).
